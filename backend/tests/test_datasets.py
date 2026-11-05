@@ -137,3 +137,6 @@ def test_overpass_conversion_prefers_arabic(registry):
     assert col["metadata"]["license"] == "ODbL-1.0"
     assert validate_dataset(json.loads(json.dumps(col)), registry).ok
     assert 'nwr["amenity"="hospital"](32.3,35.5,37.4,42.4);' in overpass_query((35.5, 32.3, 42.4, 37.4))
+    country = overpass_query()
+    assert 'area["ISO3166-1"="SY"][admin_level=2]->.sy;' in country
+    assert 'nwr["amenity"="hospital"](area.sy);' in country

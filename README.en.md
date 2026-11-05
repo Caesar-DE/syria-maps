@@ -25,7 +25,7 @@ public-service points and sourced road notices — inside OsmAnd, which works of
 | `.osf` package (plugin + icon + tile source + offline GPX) | Implemented, structurally validated — **not yet imported on a real Android device** |
 | Versioned dataset downloads (GeoJSON, GPX) | Implemented |
 | Traffic and safety notices (verified-only) | Model and API ready — **no authorized data source connected** |
-| OpenStreetMap import preferring Arabic names | Tooling ready, nothing imported yet |
+| OpenStreetMap import preferring Arabic names | Implemented and tried (about 11,400 points); server import is manual |
 | Offline raster packs (`.sqlitedb`) | Planned |
 | 3D buildings | Planned (via OSM data; `.osf` cannot inject 3D geometry) |
 | Real-time traffic | Planned — needs a real provider |
@@ -96,6 +96,102 @@ https://your-host/tiles/public-services/12/2459/1643.png
 The link returned by `GET /osmand/add-tile-source/public-services` adds the tile source directly when opened on the phone.
 
 On-device checklist and verification status: [docs/osmand-integration.md](docs/osmand-integration.md).
+
+## Data sources: where do the places come from?
+
+The main source of real data is **OpenStreetMap (OSM)**, an open map database edited by volunteers, licensed
+under ODbL (reuse allowed with the attribution "© OpenStreetMap contributors"). The project includes a tool
+that extracts public-service points inside Syria's national boundary only, preferring Arabic names (`name:ar`).
+
+In a test run (November 2026) it extracted about **11,400 points**: schools, pharmacies, hospitals, clinics,
+fuel stations, parking, police and fire stations, post offices and universities. About half have an Arabic name.
+
+### Step 1: extract (on your computer)
+
+Run it on your computer rather than inside Docker on the server; some servers block container internet access.
+
+```powershell
+cd "C:\OsmAnd Plugin\syria-maps\backend"
+.\.venv\Scripts\python.exe -m app.cli osm-extract --output ..\dist\osm-public-services.geojson
+.\.venv\Scripts\python.exe -m app.cli validate-dataset ..\dist\osm-public-services.geojson
+```
+
+It takes about a minute. The check must report `0 errors`; `feature has no name` warnings are normal
+(places in OSM without a name).
+
+### Step 2: copy the file to the server
+
+```powershell
+scp "C:\OsmAnd Plugin\syria-maps\dist\osm-public-services.geojson" root@your-host:/root/
+```
+
+### Step 3: import into the database (on the server)
+
+```bash
+cd /srv/syria-maps
+docker compose run --rm -v /root/osm-public-services.geojson:/data.geojson:ro migrate python -m app.cli import /data.geojson
+```
+
+Expected output: `imported osm-public-services.geojson: new version 1`.
+
+### Step 4: in OsmAnd
+
+Download and import the `.osf` from your server again, then choose the overlay
+`Syria Maps - Public services from OpenStreetMap`.
+
+### Updating
+
+Repeat steps 1–3, e.g. monthly. The import updates changed places, deletes places removed from OSM, and only
+creates a new version when the data actually changed. Tiles in OsmAnd refresh by themselves; no new `.osf` is needed.
+
+### Other sources
+
+Any other dataset must have a license that allows redistribution. **Never copy data from Google Maps or
+commercial sources.** How to add a layer: [docs/adding-layers.md](docs/adding-layers.md).
+
+## How can people add places?
+
+### Option 1 (recommended): add them in OpenStreetMap
+
+Every place added in OSM reaches our layer with the next import, and reaches OsmAnd's official maps for all
+users with the next map update.
+
+1. Create a free account at https://www.openstreetmap.org
+2. Add the place:
+   - **In OsmAnd:** enable the **OpenStreetMap Editing** plugin, long-press the map at the location →
+     *Create POI* → choose the type (e.g. pharmacy) and enter the name → upload with your OSM account.
+   - **In the browser:** open openstreetmap.org and press *Edit* (iD editor).
+   - **Phone apps:** StreetComplete, Every Door or Vespucci.
+3. Put the Arabic name in `name:ar` where possible and the English name in `name:en`.
+
+Types our layer reads:
+
+| Type | OSM tag |
+|---|---|
+| Hospital | `amenity=hospital` |
+| Clinic | `amenity=clinic` |
+| Pharmacy | `amenity=pharmacy` |
+| School | `amenity=school` |
+| University | `amenity=university` |
+| Fuel station | `amenity=fuel` |
+| Bus stop | `highway=bus_stop` |
+| Bus station | `amenity=bus_station` |
+| Parking | `amenity=parking` |
+| Police | `amenity=police` |
+| Fire station | `amenity=fire_station` |
+| Post office | `amenity=post_office` |
+
+**OSM rules:** only add real places you know on the ground; never copy from Google Maps or other protected maps.
+
+### Option 2: a new community layer via GitHub
+
+For data that does not fit OSM, or a separate layer (e.g. drinking-water points): a YAML file and a GeoJSON
+file submitted as a pull request. Full guide: [docs/adding-layers.md](docs/adding-layers.md).
+
+### Not available yet
+
+Adding places directly to our server from the app or website, with moderator review, is **not implemented yet**
+(planned for phase 3, see [docs/roadmap.md](docs/roadmap.md)).
 
 ## Development
 

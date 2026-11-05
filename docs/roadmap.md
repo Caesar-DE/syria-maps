@@ -13,7 +13,8 @@
 
 ## Phase 2 — Community data
 - [x] Overpass extraction tool preferring `name:ar` (`app.cli osm-extract`)
-- [ ] First reviewed OSM import into `osm-public-services`; replace synthetic layer in the package
+- [x] Country-boundary OSM extraction tested (about 11,400 points, 0 validation errors)
+- [ ] First OSM import on the production server; remove the synthetic layer from the package
 - [ ] Arabic name quality reports (missing `name:ar`, transliteration mismatches) to guide OSM edits
 - [ ] Offline raster packs (`.sqlitedb`, `FILE` subtype `tiles_map`) — verify OsmAnd's sqlitedb schema first
 - [ ] `DOWNLOADS` item for updatable offline files — verify `DownloadActivityType` values first

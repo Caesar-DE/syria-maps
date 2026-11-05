@@ -1,5 +1,5 @@
 # Phase 2 — public services extracted from OpenStreetMap (python -m app.cli osm-extract).
-# Empty until a maintainer runs and reviews an import.
+# Data appears after a maintainer imports a reviewed extract (see README "Data sources").
 id: osm-public-services
 title:
   ar: الخدمات العامة من OpenStreetMap
@@ -18,7 +18,7 @@ source:
 zoom: { min: 10, max: 19 }
 tiles: true
 osmand:
-  map_source: false
+  map_source: true
   gpx_snapshot: false
 kinds:
   hospital: { color: "#d32f2f", label: { ar: مستشفى, en: Hospital } }

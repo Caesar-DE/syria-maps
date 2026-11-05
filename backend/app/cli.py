@@ -158,10 +158,10 @@ def cmd_validate_osf(args) -> int:
 def cmd_osm_extract(args) -> int:
     from app.osm import overpass_query, overpass_to_collection
 
-    bbox = tuple(float(v) for v in args.bbox.split(","))
+    bbox = tuple(float(v) for v in args.bbox.split(",")) if args.bbox else None
     body = urllib.parse.urlencode({"data": overpass_query(bbox)}).encode()
     req = urllib.request.Request(args.endpoint, data=body, headers={"User-Agent": "syria-maps/0.1 (+github)"})
-    with urllib.request.urlopen(req, timeout=300) as resp:
+    with urllib.request.urlopen(req, timeout=360) as resp:
         payload = json.load(resp)
     retrieved = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     collection = overpass_to_collection(payload, retrieved)
@@ -239,7 +239,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--no-gpx", action="store_true", help="omit offline GPX snapshots")
     add("validate-osf", cmd_validate_osf).add_argument("files", nargs="+")
     p = add("osm-extract", cmd_osm_extract)
-    p.add_argument("--bbox", default="35.5,32.3,42.4,37.4", help="minLon,minLat,maxLon,maxLat")
+    p.add_argument("--bbox", help="minLon,minLat,maxLon,maxLat (default: Syria's national boundary)")
     p.add_argument("--endpoint", default="https://overpass-api.de/api/interpreter")
     p.add_argument("--output", default="osm-public-services.geojson")
     p = add("gen-synthetic-fixture", cmd_gen_synthetic_fixture)

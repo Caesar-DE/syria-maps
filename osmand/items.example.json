@@ -33,6 +33,26 @@
       "items": [
         {
           "sql": false,
+          "name": "Syria Maps - Public services from OpenStreetMap",
+          "minZoom": 10,
+          "maxZoom": 19,
+          "url": "https://maps.example.org/tiles/osm-public-services/{0}/{1}/{2}.png",
+          "randoms": "",
+          "ellipsoid": false,
+          "inverted_y": false,
+          "referer": "",
+          "userAgent": "",
+          "timesupported": true,
+          "expire": 60,
+          "inversiveZoom": false,
+          "ext": ".png",
+          "tileSize": 256,
+          "bitDensity": 32,
+          "avgSize": 4000,
+          "rule": ""
+        },
+        {
+          "sql": false,
           "name": "Syria Maps - Public services (synthetic)",
           "minZoom": 10,
           "maxZoom": 19,

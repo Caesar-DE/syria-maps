@@ -29,11 +29,20 @@ PUBLIC_SERVICE_TAGS: dict[tuple[str, str], str] = {
 KEEP_TAGS = ("addr:city", "addr:street", "opening_hours", "phone", "website", "operator", "healthcare", "emergency")
 
 
-def overpass_query(bbox: tuple[float, float, float, float], timeout: int = 180) -> str:
-    """Overpass QL for all public-service tags in (min_lon, min_lat, max_lon, max_lat)."""
-    s, w, n, e = bbox[1], bbox[0], bbox[3], bbox[2]
-    parts = [f'nwr["{k}"="{v}"]({s},{w},{n},{e});' for k, v in PUBLIC_SERVICE_TAGS]
-    return f"[out:json][timeout:{timeout}];(\n  " + "\n  ".join(parts) + "\n);\nout center tags;"
+def overpass_query(bbox: tuple[float, float, float, float] | None = None, timeout: int = 300) -> str:
+    """Overpass QL for all public-service tags.
+
+    Without ``bbox`` the query uses Syria's national boundary (ISO 3166-1 "SY"), so
+    neighbouring countries are excluded. ``bbox`` is (min_lon, min_lat, max_lon, max_lat).
+    """
+    if bbox is None:
+        head = 'area["ISO3166-1"="SY"][admin_level=2]->.sy;\n'
+        scope = "(area.sy)"
+    else:
+        head = ""
+        scope = f"({bbox[1]},{bbox[0]},{bbox[3]},{bbox[2]})"
+    parts = [f'nwr["{k}"="{v}"]{scope};' for k, v in PUBLIC_SERVICE_TAGS]
+    return f"[out:json][timeout:{timeout}];\n{head}(\n  " + "\n  ".join(parts) + "\n);\nout center tags;"
 
 
 def classify(tags: dict[str, str]) -> str | None:

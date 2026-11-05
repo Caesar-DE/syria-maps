@@ -53,7 +53,10 @@ def test_package_contents(osf):
     plugin = root["items"][0]
     assert plugin["pluginId"] == PLUGIN_ID
     assert plugin["name"]["ar"] == "خرائط سوريا" and plugin["name"][""]
-    (source,) = root["items"][2]["items"]
+    sources = root["items"][2]["items"]
+    assert [s["name"] for s in sources] == ["Syria Maps - Public services from OpenStreetMap",
+                                            "Syria Maps - Public services (synthetic)"]
+    source = sources[1]
     assert set(source) == set(MAP_SOURCE_KEYS)
     assert source["url"] == f"{BASE}/tiles/public-services/{{0}}/{{1}}/{{2}}.png"
     assert source["timesupported"] is True and source["expire"] == 60
