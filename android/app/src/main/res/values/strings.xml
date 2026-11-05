@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">خرائط سوريا</string>
+
+    <string name="section_osmand">تطبيق OsmAnd</string>
+    <string name="osmand_not_installed">تطبيق OsmAnd غير مثبت. هذا التطبيق يعمل مع OsmAnd الرسمي ولا يعمل بدونه.</string>
+    <string name="osmand_installed">%1$s — الإصدار %2$s</string>
+    <string name="install_osmand">تثبيت OsmAnd من Google Play</string>
+    <string name="open_osmand">فتح في OsmAnd</string>
+    <string name="grant_permission">السماح لخرائط سوريا في OsmAnd</string>
+    <string name="state_connecting">جارٍ الاتصال بـ OsmAnd…</string>
+    <string name="state_connected">متصل بـ OsmAnd</string>
+    <string name="state_disconnected">انقطع الاتصال بـ OsmAnd (ربما أُغلق التطبيق). اضغط «مزامنة الآن» لإعادة الاتصال.</string>
+    <string name="state_unsupported">نسخة OsmAnd المثبتة لا تدعم واجهة الربط (AIDL). حدّث OsmAnd من Google Play.</string>
+    <string name="state_idle">غير متصل</string>
+    <string name="choose_osmand">نسخة OsmAnd المستخدمة</string>
+
+    <string name="section_points">طبقات النقاط</string>
+    <string name="points_explain">تُرسل هذه النقاط مباشرة إلى خريطة OsmAnd. تبقى ظاهرة ما دام OsmAnd يعمل، وتُعاد تلقائياً عند فتح هذا التطبيق.</string>
+    <string name="sync_now">مزامنة الآن</string>
+    <string name="layer_points_count">%1$d نقطة على الخادم</string>
+    <string name="layer_synthetic">بيانات تجريبية</string>
+    <string name="sync_off">غير مفعلة</string>
+    <string name="sync_running">جارٍ الإرسال إلى OsmAnd: %1$d من %2$d</string>
+    <string name="sync_done">ظاهرة في OsmAnd: %1$d نقطة</string>
+    <string name="no_point_layers">لا توجد طبقات نقاط متاحة على هذا الخادم.</string>
+
+    <string name="section_raster">طبقات الصور (Raster)</string>
+    <string name="raster_explain">طبقات الصور تُضاف إلى OsmAnd عبر حزمة الإعدادات (.osf) فقط، لأن واجهة الربط لا تسمح باختيار طبقة علوية. بعد الاستيراد: تهيئة الخريطة ← طبقة علوية، ثم اختر الطبقة. يجب تفعيل إضافة «Online maps» في OsmAnd.</string>
+    <string name="install_osf">تثبيت حزمة الخرائط في OsmAnd</string>
+    <string name="osf_downloading">جارٍ تنزيل الحزمة…</string>
+    <string name="osf_consent">سيعرض OsmAnd شاشة الاستيراد لتؤكد بنفسك.</string>
+
+    <string name="section_other">طبقات أخرى</string>
+    <string name="other_explain">الشوارع والأسماء والمباني ثلاثية الأبعاد تأتي من خرائط OsmAnd نفسها (نزّل خريطة سوريا من داخل OsmAnd). إشعارات المرور والسلامة الموثقة غير معروضة في التطبيق بعد.</string>
+    <string name="integration_planned">مخطط لها</string>
+    <string name="integration_notices">إشعارات موثقة — لاحقاً</string>
+    <string name="integration_vector">من خرائط OsmAnd</string>
+
+    <string name="section_server">الخادم</string>
+    <string name="server_url">عنوان الخادم</string>
+    <string name="save">حفظ</string>
+    <string name="retry">إعادة المحاولة</string>
+    <string name="loading_layers">جارٍ تحميل الطبقات…</string>
+    <string name="ok">حسناً</string>
+
+    <string name="problem_server_unreachable">تعذر الوصول إلى الخادم. تحقق من الاتصال بالإنترنت ومن عنوان الخادم.</string>
+    <string name="problem_server_http">الخادم أعاد خطأ (HTTP %1$d).</string>
+    <string name="problem_osmand_not_installed">OsmAnd غير مثبت.</string>
+    <string name="problem_osmand_not_connected">لا يوجد اتصال بـ OsmAnd. افتح OsmAnd مرة واحدة ثم اضغط «مزامنة الآن».</string>
+    <string name="problem_osmand_unsupported">نسخة OsmAnd لا تدعم هذه الميزة. حدّث OsmAnd.</string>
+    <string name="problem_permission">رفض OsmAnd الطلب. اسمح لتطبيق «خرائط سوريا» في OsmAnd: الإعدادات ← التطبيقات المتصلة (Connected apps)، أو اضغط زر السماح.</string>
+    <string name="problem_aidl">فشل الطلب %1$s في OsmAnd.</string>
+    <string name="problem_osf_download">تعذر تنزيل الحزمة من الخادم.</string>
+    <string name="problem_permission_screen_missing">نسخة OsmAnd هذه لا تحتوي شاشة طلب الإذن. فعّل «خرائط سوريا» يدوياً في OsmAnd: الإعدادات ← التطبيقات المتصلة.</string>
+    <string name="placeholder_server">ضع عنوان خادمك (https) في قسم «الخادم» أدناه.</string>
+</resources>

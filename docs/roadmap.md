@@ -24,5 +24,6 @@
 - [ ] Traffic provider integration (needs a real, licensed provider)
 - [ ] Verified safety notices with an authorized partner organisation
 - [ ] Moderated community submissions (accounts, audit log, two-person verification)
-- [ ] Enhanced offline sync (delta GPX / companion app via OsmAnd AIDL API)
+- [x] Android companion app: point layers via OsmAnd AIDL (device test pending)
+- [ ] Enhanced offline sync (persist layers across OsmAnd restarts, background re-sync)
 - [ ] 3D: campaigns to add `height`/`building:levels` in OSM for Syrian cities

@@ -30,6 +30,7 @@ public-service points and sourced road notices — inside OsmAnd, which works of
 | 3D buildings | Planned (via OSM data; `.osf` cannot inject 3D geometry) |
 | Real-time traffic | Planned — needs a real provider |
 | Community submissions with moderation | Planned |
+| Android companion app (Kotlin) adding point layers to OsmAnd with one switch | Implemented, builds (signed APK and AAB) — **not yet tested on a real device** |
 
 ## How it works
 
@@ -193,6 +194,24 @@ file submitted as a pull request. Full guide: [docs/adding-layers.md](docs/addin
 Adding places directly to our server from the app or website, with moderator review, is **not implemented yet**
 (planned for phase 3, see [docs/roadmap.md](docs/roadmap.md)).
 
+## Android companion app (the easy way)
+
+Instead of importing the package and picking layers by hand, there is a simple Arabic Android app in `android/`:
+
+1. Install OsmAnd, then the "Syria Maps" app (`app-release.apk`).
+2. Open it and enter your server URL in the "Server" section if it is not preset.
+3. Turn on the switch next to a layer; the points are sent straight to the OsmAnd map.
+4. Tap "Open in OsmAnd".
+
+Notes:
+- If OsmAnd refuses, an "allow" button appears. Recent OsmAnd versions require allowing connected apps once.
+- OsmAnd keeps these points in memory only; they disappear when OsmAnd is fully closed. Opening
+  "Syria Maps" again re-sends them automatically.
+- Raster overlays cannot be switched on from the app. "Install map package" opens OsmAnd's import screen for you to confirm.
+
+Build, signing, limitations and verification status: [docs/android-companion.md](docs/android-companion.md).
+The app is GPL-3.0 because it uses OsmAnd's official GPL-3.0 AIDL interface.
+
 ## Development
 
 ```bash
@@ -229,6 +248,6 @@ python -m app.cli validate-osf ../dist/syria-maps.osf
 
 - [CONTRIBUTING.md](CONTRIBUTING.md), [docs/adding-layers.md](docs/adding-layers.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 - [docs/safety-policy.md](docs/safety-policy.md) — the absence of a warning never means "safe".
-- Code: [MIT](LICENSE). Data: per layer (OSM-derived data ODbL 1.0, synthetic fixtures CC0) — [docs/licensing.md](docs/licensing.md).
+- Code: [MIT](LICENSE); the Android app in `android/` is GPL-3.0 (links OsmAnd's AIDL API). Data: per layer (OSM-derived data ODbL 1.0, synthetic fixtures CC0) — [docs/licensing.md](docs/licensing.md).
 - Independent project, not affiliated with OsmAnd. "OsmAnd" is a trademark of its owners.
 - Roadmap: [docs/roadmap.md](docs/roadmap.md)

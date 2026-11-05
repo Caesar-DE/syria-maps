@@ -51,7 +51,7 @@ therefore happens **server-side**, and reaches OsmAnd through supported data cha
 | 3D buildings | OsmAnd renders OSM `building`/`height`/`building:levels` from its own OBF maps. `.osf` cannot inject 3D geometry | Improve data **upstream in OSM**; no `.osf` feature |
 | Traffic | No OsmAnd live-traffic import format. Server data model + API + raster overlay | Data model/API implemented, **no data provider** |
 | Safety notices | Server-side, verified-only API + overlay; never shipped as "safe routes" | API implemented with verification rules, **no authorized source yet** |
-| Executable companion logic | Would require a separate Android app using the OsmAnd AIDL API (`OsmAnd-api`) | **Not built** — documented as a future option |
+| Executable companion logic | Separate Android app using the OsmAnd AIDL API (`OsmAnd-api`), see android-companion.md | Implemented (point layers); device test pending |
 
 ## 4. Important limitations
 
