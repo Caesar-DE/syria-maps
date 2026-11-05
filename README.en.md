@@ -43,17 +43,59 @@ and reaches OsmAnd through official mechanisms:
 
 Details: [docs/feasibility.md](docs/feasibility.md), [docs/architecture.md](docs/architecture.md).
 
-## Install (end users)
+## Install and use in OsmAnd
+
+### 1. Install
 
 1. Install OsmAnd from Google Play.
-2. Download `syria-maps.osf` from the releases page or `https://your-host/osmand/syria-maps.osf`.
-3. Open it with OsmAnd → Import.
-4. Enable the **Online maps** plugin, then *Configure map → Overlay map* → choose
-   `Syria Maps - Public services (synthetic)`.
-5. The GPX waypoints appear under *My places → Tracks* and can be shown offline.
+2. Download `syria-maps.osf` from your server: `https://your-host/osmand/syria-maps.osf`
+   (or from the GitHub releases page).
+3. Open the file with OsmAnd → Import, and confirm.
 
-No-`.osf` alternative: the link returned by `GET /osmand/add-tile-source/public-services`.
-Full steps and the on-device verification checklist: [docs/osmand-integration.md](docs/osmand-integration.md).
+> **Important:** the tile URL is written into the `.osf` file. A package built locally in `dist/`
+> points at the placeholder `maps.example.org` and will not work. Always use the package downloaded
+> from your server, or build it with your URL (`build-osf --base-url https://your-host`).
+
+### 2. Check the import
+
+- *Menu → Plugins*: **Syria Maps / خرائط سوريا** should be listed with a green icon.
+- In the same list, enable the **Online maps** plugin — without it the layer cannot be shown.
+
+### 3. Show the layer
+
+1. *Configure map → Overlay map*.
+2. Choose `Syria Maps - Public services (synthetic)`.
+3. Adjust transparency with the slider at the bottom of the screen.
+4. Go to Damascus (about 33.45 N, 36.20 E) and zoom to level 12 or more. Coloured dots appear:
+   red hospital, green pharmacy, yellow school, purple fuel station, blue bus stop, grey parking.
+   More clusters are near Aleppo, Homs and Latakia. **These points are synthetic, not real places.**
+
+Tiles are rendered from the server database and OsmAnd re-fetches them every 60 minutes, so updates
+arrive without re-importing.
+
+### 4. Offline points
+
+- *My places → Tracks* → `syria-maps-public-services` → *Show on map*. Works in airplane mode.
+- This is a snapshot of the dataset at download time. To update, download a new `.osf` or the GPX from
+  `https://your-host/api/v1/datasets/public-services/download?format=gpx`.
+
+### 5. If no points appear
+
+Open this URL in the phone's browser; it should show an image with coloured dots:
+
+```
+https://your-host/tiles/public-services/12/2459/1643.png
+```
+
+- No image: check that the server runs (`/health`) and HTTPS is set up (Caddy or nginx, see [docs/deployment.md](docs/deployment.md)).
+- Image works but not in OsmAnd: check that Online maps is enabled and the overlay selected, and that
+  `SYRIA_MAPS_PUBLIC_BASE_URL` in the server's `.env` is the correct HTTPS URL; then download the `.osf` again.
+
+### Without `.osf`
+
+The link returned by `GET /osmand/add-tile-source/public-services` adds the tile source directly when opened on the phone.
+
+On-device checklist and verification status: [docs/osmand-integration.md](docs/osmand-integration.md).
 
 ## Development
 
