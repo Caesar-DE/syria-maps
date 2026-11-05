@@ -15,4 +15,4 @@ python -m app.cli validate-osf ../dist/syria-maps.osf
 - Background and limitations: [`docs/feasibility.md`](../docs/feasibility.md),
   [`docs/osmand-integration.md`](../docs/osmand-integration.md).
 
-⚠️ Structural validation passes; **import on a real Android device has not been verified yet.**
+Note: Structural validation passes; **import on a real Android device has not been verified yet.**

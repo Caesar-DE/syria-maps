@@ -57,14 +57,14 @@ accepts it with a warning. Release packages must use HTTPS.
 
 | Check | Status |
 |---|---|
-| ZIP layout, `items.json` keys and types against OsmAnd source | ✅ automated (`validate-osf`, tests) |
-| Tile endpoint serves 256 px PNG for OsmAnd's `{0}/{1}/{2}` template | ✅ automated |
-| GPX 1.1 well-formed | ✅ automated |
-| Import on a real Android device | ❌ **not yet verified** |
-| Tile source appears and renders as overlay | ❌ **not yet verified** |
-| GPX lands in Tracks | ❌ **not yet verified** |
-| Plugin icon/image displayed | ❌ **not yet verified** |
-| `add-tile-source` link | ❌ **not yet verified** |
+| ZIP layout, `items.json` keys and types against OsmAnd source | Automated (`validate-osf`, tests) |
+| Tile endpoint serves 256 px PNG for OsmAnd's `{0}/{1}/{2}` template | Automated |
+| GPX 1.1 well-formed | Automated |
+| Import on a real Android device | **Not yet verified** |
+| Tile source appears and renders as overlay | **Not yet verified** |
+| GPX lands in Tracks | **Not yet verified** |
+| Plugin icon/image displayed | **Not yet verified** |
+| `add-tile-source` link | **Not yet verified** |
 
 ### On-device checklist (please report results in an issue)
 
