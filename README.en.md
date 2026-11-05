@@ -6,7 +6,7 @@ Syrian map layers (public services, verified traffic and safety notices, communi
 
 > Arabic (primary): [README.md](README.md)
 
-> ⚠️ **All data currently in this repository is synthetic** development data. Every record carries
+>  **All data currently in this repository is synthetic** development data. Every record carries
 > `synthetic: true` and the word "Synthetic" in its name. It does not represent real facilities.
 
 ## Vision
@@ -18,18 +18,18 @@ public-service points and sourced road notices — inside OsmAnd, which works of
 
 | Feature | Status |
 |---|---|
-| FastAPI + PostgreSQL/PostGIS backend with Docker Compose | ✅ Implemented (Compose verified in CI only; not run on the authoring machine) |
-| Layer metadata API, spatial queries, pagination, input validation | ✅ Implemented and tested |
-| Public-services layer (synthetic data) | ✅ Implemented |
-| Transparent PNG overlay tiles usable as an OsmAnd online map source | ✅ Implemented |
-| `.osf` package (plugin + icon + tile source + offline GPX) | ✅ Implemented, structurally validated — ⚠️ **not yet imported on a real Android device** |
-| Versioned dataset downloads (GeoJSON, GPX) | ✅ Implemented |
-| Traffic and safety notices (verified-only) | 🧪 Model and API ready — **no authorized data source connected** |
-| OpenStreetMap import preferring Arabic names | 🧪 Tooling ready, nothing imported yet |
-| Offline raster packs (`.sqlitedb`) | 📋 Planned |
-| 3D buildings | 📋 Planned (via OSM data; `.osf` cannot inject 3D geometry) |
-| Real-time traffic | 📋 Planned — needs a real provider |
-| Community submissions with moderation | 📋 Planned |
+| FastAPI + PostgreSQL/PostGIS backend with Docker Compose |  Implemented (Compose verified in CI only; not run on the authoring machine) |
+| Layer metadata API, spatial queries, pagination, input validation |  Implemented and tested |
+| Public-services layer (synthetic data) |  Implemented |
+| Transparent PNG overlay tiles usable as an OsmAnd online map source |  Implemented |
+| `.osf` package (plugin + icon + tile source + offline GPX) |  Implemented, structurally validated —  **not yet imported on a real Android device** |
+| Versioned dataset downloads (GeoJSON, GPX) |  Implemented |
+| Traffic and safety notices (verified-only) |  Model and API ready — **no authorized data source connected** |
+| OpenStreetMap import preferring Arabic names |  Tooling ready, nothing imported yet |
+| Offline raster packs (`.sqlitedb`) |  Planned |
+| 3D buildings |  Planned (via OSM data; `.osf` cannot inject 3D geometry) |
+| Real-time traffic |  Planned — needs a real provider |
+| Community submissions with moderation |  Planned |
 
 ## How it works
 
