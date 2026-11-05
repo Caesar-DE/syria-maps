@@ -28,6 +28,8 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
+      # Host network for the build: some servers cannot resolve DNS from the default build bridge.
+      network: host
     environment:
       <<: *api-env
       LOAD_SYNTHETIC_FIXTURES: ${LOAD_SYNTHETIC_FIXTURES:-true}
@@ -43,6 +45,7 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
+      network: host
     environment: *api-env
     ports:
       - "${API_PORT:-8000}:8000"
