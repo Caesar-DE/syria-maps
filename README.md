@@ -47,7 +47,7 @@
 ## التثبيت للمستخدم
 
 1. ثبّت OsmAnd من Google Play.
-2. نزّل `syria-maps.osf` من صفحة الإصدارات أو من `https://خادمك/osmand/syria-maps.osf`.
+2. نزّل `syria-maps.osf` من صفحة الإصدارات أو من `https://ur-Server/osmand/syria-maps.osf`.
 3. افتح الملف بـ OsmAnd ← «استيراد».
 4. فعّل إضافة **Online maps** في OsmAnd، ثم: «تهيئة الخريطة» ← «طبقة علوية» ← اختر
    `Syria Maps - Public services (synthetic)`.
