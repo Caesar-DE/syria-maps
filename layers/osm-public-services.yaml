@@ -1,0 +1,35 @@
+# Phase 2 — public services extracted from OpenStreetMap (python -m app.cli osm-extract).
+# Empty until a maintainer runs and reviews an import.
+id: osm-public-services
+title:
+  ar: الخدمات العامة من OpenStreetMap
+  en: Public services from OpenStreetMap
+description:
+  ar: نقاط الخدمات العامة المستخرجة من OpenStreetMap مع تفضيل الأسماء العربية.
+  en: Public-service points extracted from OpenStreetMap, preferring Arabic names.
+category: services
+status: experimental
+geometry_types: [Point]
+license: ODbL-1.0
+attribution: © OpenStreetMap contributors
+source:
+  name: OpenStreetMap (Overpass API)
+  url: https://www.openstreetmap.org/copyright
+zoom: { min: 10, max: 19 }
+tiles: true
+osmand:
+  map_source: false
+  gpx_snapshot: false
+kinds:
+  hospital: { color: "#d32f2f", label: { ar: مستشفى, en: Hospital } }
+  clinic: { color: "#e57373", label: { ar: عيادة, en: Clinic } }
+  pharmacy: { color: "#2e7d32", label: { ar: صيدلية, en: Pharmacy } }
+  school: { color: "#f9a825", label: { ar: مدرسة, en: School } }
+  university: { color: "#ef6c00", label: { ar: جامعة, en: University } }
+  fuel: { color: "#6a1b9a", label: { ar: محطة وقود, en: Fuel station } }
+  bus_stop: { color: "#1565c0", label: { ar: موقف حافلات, en: Bus stop } }
+  bus_station: { color: "#0d47a1", label: { ar: محطة حافلات, en: Bus station } }
+  parking: { color: "#455a64", label: { ar: موقف سيارات, en: Parking } }
+  police: { color: "#283593", label: { ar: مركز شرطة, en: Police } }
+  fire_station: { color: "#bf360c", label: { ar: مركز إطفاء, en: Fire station } }
+  post_office: { color: "#8d6e63", label: { ar: مكتب بريد, en: Post office } }

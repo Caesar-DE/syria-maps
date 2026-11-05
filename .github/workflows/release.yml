@@ -1,0 +1,32 @@
+name: Release OsmAnd package
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  osf:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Build package against the public API
+        env:
+          BASE_URL: ${{ vars.SYRIA_MAPS_PUBLIC_BASE_URL }}
+        run: |
+          test -n "$BASE_URL" || { echo "Set the repository variable SYRIA_MAPS_PUBLIC_BASE_URL (https)"; exit 1; }
+          python -m app.cli build-osf --storage memory --base-url "$BASE_URL" \
+            --plugin-version "${{ github.run_number }}" --output ../dist/syria-maps.osf
+          python -m app.cli validate-osf ../dist/syria-maps.osf
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/syria-maps.osf

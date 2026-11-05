@@ -1,0 +1,17 @@
+# Layer 4 — Traffic. Data model and verified-only API exist; there is NO data provider yet,
+# so nothing here is real-time.
+id: traffic
+title:
+  ar: معلومات المرور
+  en: Traffic information
+description:
+  ar: إغلاقات الطرق وأعمال الإنشاء والازدحام والقيود مع طوابع زمنية. لا يوجد مزود بيانات حتى الآن.
+  en: Road closures, construction, congestion and restrictions with timestamps. No data provider yet.
+category: traffic
+status: experimental
+geometry_types: [Point, LineString, MultiLineString, Polygon]
+license: varies per source
+attribution: Per-notice source (see source_name)
+source:
+  name: None connected yet
+verified_only: true

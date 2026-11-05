@@ -1,0 +1,8 @@
+# Caddy obtains and renews Let's Encrypt certificates automatically.
+maps.example.org {
+	encode gzip
+	reverse_proxy 127.0.0.1:8000
+
+	@tiles path /tiles/*
+	header @tiles Cache-Control "public, max-age=3600"
+}

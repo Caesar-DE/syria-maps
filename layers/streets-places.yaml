@@ -1,0 +1,20 @@
+# Layer 1 — Streets and places. OsmAnd already ships OSM-based offline maps for Syria;
+# this project improves the source data upstream in OpenStreetMap instead of duplicating it.
+id: streets-places
+title:
+  ar: الشوارع والأماكن السورية
+  en: Syrian streets and places
+description:
+  ar: أسماء الشوارع والأحياء والمعالم بالعربية. تأتي من خرائط OsmAnd المبنية على OpenStreetMap.
+  en: Arabic street, neighbourhood and landmark names, delivered through OsmAnd's own OSM-based maps.
+category: base
+status: planned
+geometry_types: [Point, LineString, Polygon, MultiPolygon]
+license: ODbL-1.0
+attribution: © OpenStreetMap contributors
+source:
+  name: OpenStreetMap
+  url: https://www.openstreetmap.org/copyright
+notes:
+  ar: نزّل خريطة سوريا من داخل OsmAnd. التحسينات (name:ar) تُضاف إلى OpenStreetMap وتصل مع تحديثات خرائط OsmAnd.
+  en: Download the Syria map inside OsmAnd. Improvements (name:ar) go to OpenStreetMap and arrive with OsmAnd map updates.

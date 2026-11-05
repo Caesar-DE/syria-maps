@@ -1,0 +1,23 @@
+# Example community layer. Copy to layers/water-points.yaml to activate.
+id: water-points
+title:
+  ar: نقاط المياه العامة
+  en: Public water points
+description:
+  ar: صنابير ونقاط مياه شرب عامة يضيفها المجتمع.
+  en: Public drinking-water taps and points contributed by the community.
+category: community
+status: experimental
+geometry_types: [Point]
+license: CC0-1.0
+attribution: Syria Maps contributors — synthetic example
+source:
+  name: Example only
+synthetic: true
+zoom: { min: 12, max: 19 }
+tiles: true
+osmand:
+  map_source: false
+  gpx_snapshot: false
+kinds:
+  drinking_water: { color: "#0288d1", label: { ar: مياه شرب, en: Drinking water } }

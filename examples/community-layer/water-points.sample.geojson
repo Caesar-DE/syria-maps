@@ -1,0 +1,22 @@
+{
+  "type": "FeatureCollection",
+  "metadata": {
+    "layer_id": "water-points",
+    "source": "Example only",
+    "license": "CC0-1.0",
+    "attribution": "Syria Maps contributors — synthetic example",
+    "synthetic": true
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [36.2412, 33.4731] },
+      "properties": {
+        "id": "example-1",
+        "kind": "drinking_water",
+        "name_ar": "نقطة مياه تجريبية 1 (بيانات اصطناعية)",
+        "name_en": "Synthetic water point 1"
+      }
+    }
+  ]
+}

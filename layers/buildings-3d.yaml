@@ -1,0 +1,20 @@
+# Layer 3 — 3D buildings. An .osf package cannot inject 3D geometry; OsmAnd renders
+# buildings from OSM tags (building, height, building:levels) in its own maps.
+id: buildings-3d
+title:
+  ar: المباني ثلاثية الأبعاد
+  en: 3D buildings
+description:
+  ar: مضلعات المباني من OpenStreetMap مع الارتفاعات وعدد الطوابق حيثما توفرت.
+  en: OpenStreetMap building polygons with heights and levels where available.
+category: buildings
+status: planned
+geometry_types: [Polygon, MultiPolygon]
+license: ODbL-1.0
+attribution: © OpenStreetMap contributors
+source:
+  name: OpenStreetMap
+  url: https://www.openstreetmap.org/copyright
+notes:
+  ar: الخطة هي إضافة الوسمين height و building:levels في OpenStreetMap لتظهر في عرض OsmAnd ثلاثي الأبعاد.
+  en: Plan is to add height and building:levels tags in OpenStreetMap so they appear in OsmAnd's 3D view.

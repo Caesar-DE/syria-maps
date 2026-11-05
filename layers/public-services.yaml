@@ -1,0 +1,31 @@
+# Layer 2 — Public services (MVP). Currently filled ONLY with synthetic development data.
+id: public-services
+title:
+  ar: الخدمات العامة
+  en: Public services
+description:
+  ar: مستشفيات وصيدليات ومدارس ومحطات وقود ومواقف حافلات وسيارات. البيانات الحالية اصطناعية لأغراض التطوير فقط.
+  en: Hospitals, pharmacies, schools, fuel stations, bus stops and parking. Current data is synthetic, for development only.
+category: services
+status: implemented
+geometry_types: [Point]
+license: CC0-1.0
+attribution: Syria Maps contributors — synthetic test data
+source:
+  name: Syria Maps synthetic development fixture (database/fixtures)
+synthetic: true
+zoom: { min: 10, max: 19 }
+tiles: true
+osmand:
+  map_source: true
+  gpx_snapshot: true
+kinds:
+  hospital: { color: "#d32f2f", label: { ar: مستشفى, en: Hospital } }
+  pharmacy: { color: "#2e7d32", label: { ar: صيدلية, en: Pharmacy } }
+  school: { color: "#f9a825", label: { ar: مدرسة, en: School } }
+  fuel: { color: "#6a1b9a", label: { ar: محطة وقود, en: Fuel station } }
+  bus_stop: { color: "#1565c0", label: { ar: موقف حافلات, en: Bus stop } }
+  parking: { color: "#455a64", label: { ar: موقف سيارات, en: Parking } }
+notes:
+  ar: سيتم استبدالها ببيانات OpenStreetMap عبر طبقة osm-public-services بعد مراجعتها.
+  en: To be replaced by reviewed OpenStreetMap data through the osm-public-services layer.

@@ -1,0 +1,20 @@
+# Layer 5 — Safety information. Only verified notices from authorized sources are ever
+# published. See docs/safety-policy.md. No source is connected yet.
+id: safety-notices
+title:
+  ar: إشعارات السلامة الموثقة
+  en: Verified safety notices
+description:
+  ar: مخاطر طرق وإغلاقات وإشعارات سلامة عامة موثقة من جهات معتمدة فقط، مع المصدر وتاريخ الانتهاء.
+  en: Road hazards, closures and public safety notices from authorized sources only, with source and expiry.
+category: safety
+status: experimental
+geometry_types: [Point, LineString, MultiLineString, Polygon, MultiPolygon]
+license: varies per source
+attribution: Per-notice source (see source_name)
+source:
+  name: None connected yet
+verified_only: true
+notes:
+  ar: عدم وجود تحذير لا يعني أن المنطقة آمنة. لا يقدم المشروع أي ضمان لمسارات آمنة.
+  en: The absence of a warning does not mean an area is safe. The project gives no safe-route guarantees.

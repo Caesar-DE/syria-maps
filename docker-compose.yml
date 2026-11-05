@@ -1,0 +1,57 @@
+name: syria-maps
+
+x-api-env: &api-env
+  SYRIA_MAPS_STORAGE: postgis
+  SYRIA_MAPS_DATABASE_URL: postgresql://${POSTGRES_USER:-syria_maps}:${POSTGRES_PASSWORD:-syria_maps}@db:5432/${POSTGRES_DB:-syria_maps}
+  SYRIA_MAPS_PUBLIC_BASE_URL: ${SYRIA_MAPS_PUBLIC_BASE_URL:-http://localhost:8000}
+  SYRIA_MAPS_CORS_ORIGINS: ${SYRIA_MAPS_CORS_ORIGINS:-*}
+  SYRIA_MAPS_CACHE_TTL_SECONDS: ${SYRIA_MAPS_CACHE_TTL_SECONDS:-300}
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-syria_maps}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-syria_maps}
+      POSTGRES_DB: ${POSTGRES_DB:-syria_maps}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  # One-shot: migrations, layer sync and (optionally) the synthetic development fixture.
+  migrate:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      <<: *api-env
+      LOAD_SYNTHETIC_FIXTURES: ${LOAD_SYNTHETIC_FIXTURES:-true}
+    command: >
+      sh -c 'if [ "$$LOAD_SYNTHETIC_FIXTURES" = "true" ]; then python -m app.cli seed;
+             else python -m app.cli migrate && python -m app.cli sync-layers; fi'
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment: *api-env
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  pgdata:

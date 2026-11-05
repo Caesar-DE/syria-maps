@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "type": "PLUGIN",
+      "pluginId": "syria.maps",
+      "version": 1,
+      "name": {
+        "": "Syria Maps",
+        "en": "Syria Maps",
+        "ar": "خرائط سوريا"
+      },
+      "description": {
+        "": "Community map layers for Syria: online overlays and offline waypoint datasets. Open source, data under ODbL/CC licenses.",
+        "en": "Community map layers for Syria: online overlays and offline waypoint datasets. Open source, data under ODbL/CC licenses.",
+        "ar": "طبقات خرائط مجتمعية لسوريا: طبقات تراكب عبر الإنترنت وبيانات نقاط للاستخدام دون اتصال. مشروع مفتوح المصدر."
+      },
+      "icon": {
+        "": "@syria_maps_icon.png"
+      },
+      "image": {
+        "": "@syria_maps_image.png"
+      }
+    },
+    {
+      "type": "RESOURCES",
+      "pluginId": "syria.maps",
+      "file": "res"
+    },
+    {
+      "type": "MAP_SOURCES",
+      "pluginId": "syria.maps",
+      "items": [
+        {
+          "sql": false,
+          "name": "Syria Maps - Public services (synthetic)",
+          "minZoom": 10,
+          "maxZoom": 19,
+          "url": "https://maps.example.org/tiles/public-services/{0}/{1}/{2}.png",
+          "randoms": "",
+          "ellipsoid": false,
+          "inverted_y": false,
+          "referer": "",
+          "userAgent": "",
+          "timesupported": true,
+          "expire": 60,
+          "inversiveZoom": false,
+          "ext": ".png",
+          "tileSize": 256,
+          "bitDensity": 32,
+          "avgSize": 4000,
+          "rule": ""
+        }
+      ]
+    },
+    {
+      "type": "FILE",
+      "pluginId": "syria.maps",
+      "subtype": "gpx",
+      "file": "/tracks/syria-maps-public-services.gpx"
+    }
+  ]
+}
