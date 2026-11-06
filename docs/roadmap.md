@@ -27,6 +27,6 @@
 - [ ] Moderation with several accounts, audit log and two-person verification
 - [x] Android companion app: point layers via OsmAnd AIDL (tested on a real phone)
 - [x] Reports as OpenStreetMap notes from the app (tested on the OSM dev server)
-- [x] Direct OpenStreetMap editing from the app (OAuth2; device test pending)
+- [x] Direct OpenStreetMap editing from the app (OAuth2; tested on the OSM dev server)
 - [ ] Enhanced offline sync (persist layers across OsmAnd restarts, background re-sync)
 - [ ] 3D: campaigns to add `height`/`building:levels` in OSM for Syrian cities

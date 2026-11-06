@@ -67,7 +67,8 @@ named node or way. Closed places and other problems stay notes, so someone check
    separate account) → My Settings → OAuth 2 applications → Register new application.
 2. Name `Syria Maps`, redirect URI `io.github.caesarde.syriamaps://oauth2`, permissions **Read user
    preferences** and **Modify the map**, **Confidential application unticked**.
-3. Build with the client id: `./gradlew assembleRelease -PosmClientId=<id>` (debug: `-PosmDevClientId=<id>`).
+3. Put the client id into `android/gradle.properties` (`osmClientId=` for openstreetmap.org, `osmDevClientId=`
+   for the dev server; the dev id is already set) or pass `-PosmClientId=<id>`. Public clients have no secret.
    Without a client id the "Edit OpenStreetMap directly" option is hidden.
 
 ## How it talks to OsmAnd
@@ -199,7 +200,7 @@ must stay available. No OsmAnd artwork (CC-BY-NC-ND) is used.
 | Compiles against the vendored OsmAnd AIDL interface | Done |
 | Unit tests (JSON parsing, point mapping, chunking, location parsing, note text, community body, OSM XML/tags, PKCE) | Done (23 tests) |
 | Team submission: phone → server → moderation page → community layer → OsmAnd | Verified 2026-11-06 (in-memory storage) |
-| Direct OSM edit: login, nearby search, upload | **Not yet verified on a device** (needs a registered OAuth app) |
+| Direct OSM edit: login, nearby search, upload | Verified 2026-11-06 on the OSM dev server: OAuth2 login + redirect back into the app; node 4365742176 created (changeset 720405, closed, tags as previewed); renamed via nearby search (changeset 720406, version 2, other tags kept) |
 | Signed release APK + AAB, lint without errors | Done |
 | Binding, layer display and permission flow on a real device with OsmAnd | Verified 2026-11-06: Galaxy Z Fold7, Android 17, OsmAnd 5.4.11 (`net.osmand`). Bind OK; first call refused until the app was enabled in *Plugins*; then remove/add/updateMapLayer accepted and 48 synthetic points shown around Damascus |
 | `.osf` hand-over via ACTION_VIEW on a real device | Verified 2026-11-06 (Fold7, OsmAnd 5.4.11): OsmAnd shows its own import dialog; after import OsmAnd must be restarted to load the new tile source |

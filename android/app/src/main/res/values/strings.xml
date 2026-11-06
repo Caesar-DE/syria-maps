@@ -179,4 +179,5 @@
     <string name="osm_edit_conflict">عدّل شخص آخر هذا المكان للتو. ابحث من جديد وحاول مرة أخرى.</string>
     <string name="osm_edit_sent_text">تعديلك منشور الآن على OpenStreetMap، ويصل إلى خرائط OsmAnd مع التحديث القادم.</string>
     <string name="osm_view_changeset">عرض التعديل على OSM</string>
+    <string name="osm_edit_sent_title">شكراً! رُفع تعديلك</string>
 </resources>

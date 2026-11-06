@@ -111,7 +111,7 @@ fun ReportScreen(state: UiState, vm: MainViewModel, onUseLocation: () -> Unit) {
                     contentAlignment = Alignment.Center,
                 ) { InkIcon(InkGlyph.Close, size = 22.dp, ink = c.ink) }
             }
-            if (BuildConfig.DEBUG && draft.destination == ReportDestination.OSM_NOTE) {
+            if (BuildConfig.DEBUG && draft.destination != ReportDestination.COMMUNITY) {
                 Text(
                     stringResource(R.string.report_test_server),
                     style = MaterialTheme.typography.labelSmall,
@@ -587,7 +587,10 @@ private fun SentView(sent: ReportStatus.Sent, directEdit: Boolean, onDone: () ->
                 .inkSurface(Palette.Yellow, Palette.Ink, radius = 65.dp, offset = 5.dp),
             contentAlignment = Alignment.Center,
         ) { InkIcon(InkGlyph.Check, size = 84.dp, ink = Palette.Ink, fill = Palette.Cream) }
-        Text(stringResource(R.string.report_sent_title), style = MaterialTheme.typography.headlineSmall, color = c.text, textAlign = TextAlign.Center)
+        Text(
+            stringResource(if (directEdit) R.string.osm_edit_sent_title else R.string.report_sent_title),
+            style = MaterialTheme.typography.headlineSmall, color = c.text, textAlign = TextAlign.Center,
+        )
         Text(
             stringResource(
                 when {

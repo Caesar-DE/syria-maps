@@ -31,7 +31,7 @@ public-service points and sourced road notices — inside OsmAnd, which works of
 | Real-time traffic | Planned — needs a real provider |
 | Reporting wrong names, missing or closed places as OpenStreetMap notes (Android app) | Implemented, tested on a real phone against the OSM test server |
 | Community submissions with moderation on our own server (`/moderation`, layer `community-places`) | Implemented; tested end to end (phone → moderation page → layer → OsmAnd) with in-memory storage; PostGIS path covered by CI tests |
-| Direct OpenStreetMap editing from the app (OAuth2, add place / rename) | Implemented and unit tested; **login and upload not yet tested on a device** (needs a registered OSM OAuth app) |
+| Direct OpenStreetMap editing from the app (OAuth2, add place / rename) | Implemented; tested on a real phone against the OSM dev server (login, add school, rename it). Release builds need a client id registered on openstreetmap.org |
 | Android companion app (Kotlin) adding point layers to OsmAnd with one switch | Implemented; tested on a real phone with OsmAnd 5.4.11 (points appear on the map; `.osf` hand-over works) |
 
 ## How it works

@@ -171,4 +171,5 @@
     <string name="osm_edit_conflict">Jemand anderes hat diesen Ort gerade bearbeitet. Bitte neu suchen und erneut versuchen.</string>
     <string name="osm_edit_sent_text">Deine Änderung ist jetzt auf OpenStreetMap und kommt mit dem nächsten Update in die OsmAnd-Karten.</string>
     <string name="osm_view_changeset">Änderung auf OSM ansehen</string>
+    <string name="osm_edit_sent_title">Danke! Deine Änderung ist hochgeladen</string>
 </resources>
