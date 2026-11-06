@@ -53,5 +53,12 @@
     <string name="problem_aidl">فشل الطلب %1$s في OsmAnd.</string>
     <string name="problem_osf_download">تعذر تنزيل الحزمة من الخادم.</string>
     <string name="problem_permission_screen_missing">نسخة OsmAnd هذه لا تحتوي شاشة طلب الإذن. فعّل «خرائط سوريا» يدوياً في OsmAnd: الإعدادات ← التطبيقات المتصلة.</string>
+    <string name="hero_subtitle">طبقات سورية مباشرة على خريطة OsmAnd</string>
+    <string name="hero_points">نقطة على الخريطة</string>
+    <string name="hero_layers">طبقة مفعلة</string>
+    <string name="pill_connected">متصل بـ OsmAnd</string>
+    <string name="pill_connecting">جارٍ الاتصال…</string>
+    <string name="pill_offline">غير متصل</string>
+    <string name="pill_missing">OsmAnd غير مثبت</string>
     <string name="placeholder_server">ضع عنوان خادمك (https) في قسم «الخادم» أدناه.</string>
 </resources>
