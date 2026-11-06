@@ -40,6 +40,36 @@ Where the location comes from:
 Privacy: the screen states that notes are public and requires confirming that before sending. Nothing about
 the user is stored or sent besides the note itself.
 
+## Sending to the Syria Maps team (moderated)
+
+The report screen can send to the Syria Maps server instead (`POST /api/v1/submissions`, see
+[deployment.md](deployment.md) section 5). The body carries only type, location, kind, names and details; the
+sender must agree to CC0. Arabic input goes to `name_ar`, Latin to `name_en`. HTTP 429 (rate limit) is shown as
+its own message. Accepted new places appear in the `community-places` layer, which the app lists like any other
+point layer; "Sync now" reloads the layer list from the server.
+
+## Direct OpenStreetMap editing (OAuth2)
+
+Logged-in users can add a place (node with `amenity=*`/`shop=*`, `name`, `name:ar` or `name:en`) or rename a nearby
+named node or way. Closed places and other problems stay notes, so someone checks on the ground before deleting.
+
+- Login: OAuth 2.0 authorization code + PKCE (public client, no secret in the app). The password is entered only
+  on openstreetmap.org in the browser. Token and display name are kept in the app's private storage.
+- Rename: `GET /api/0.6/map` (about 80 m around the location) lists named objects nearest first; the user picks
+  one. Before upload the element is re-read; if its version changed, the app stops with a conflict message.
+- Upload: one changeset per edit (`created_by`, `comment`, `hashtags=#SyriaMaps`, `source=local knowledge`),
+  then the node create / element update, then the changeset is closed. A preview shows the exact tags first.
+- Debug builds talk to `master.apis.dev.openstreetmap.org`, release builds to `api.openstreetmap.org`.
+
+### Registering the OAuth app (once per server)
+
+1. Log in on https://www.openstreetmap.org (for testing: https://master.apis.dev.openstreetmap.org with a
+   separate account) → My Settings → OAuth 2 applications → Register new application.
+2. Name `Syria Maps`, redirect URI `io.github.caesarde.syriamaps://oauth2`, permissions **Read user
+   preferences** and **Modify the map**, **Confidential application unticked**.
+3. Build with the client id: `./gradlew assembleRelease -PosmClientId=<id>` (debug: `-PosmDevClientId=<id>`).
+   Without a client id the "Edit OpenStreetMap directly" option is hidden.
+
 ## How it talks to OsmAnd
 
 Everything below was read from the OsmAnd source at commit `32a03a67` (2026-11-05). No AIDL method was
@@ -167,7 +197,9 @@ must stay available. No OsmAnd artwork (CC-BY-NC-ND) is used.
 | Check | Status |
 |---|---|
 | Compiles against the vendored OsmAnd AIDL interface | Done |
-| Unit tests (JSON parsing, point mapping, chunking, location parsing, note text) | Done (15 tests) |
+| Unit tests (JSON parsing, point mapping, chunking, location parsing, note text, community body, OSM XML/tags, PKCE) | Done (23 tests) |
+| Team submission: phone → server → moderation page → community layer → OsmAnd | Verified 2026-11-06 (in-memory storage) |
+| Direct OSM edit: login, nearby search, upload | **Not yet verified on a device** (needs a registered OAuth app) |
 | Signed release APK + AAB, lint without errors | Done |
 | Binding, layer display and permission flow on a real device with OsmAnd | Verified 2026-11-06: Galaxy Z Fold7, Android 17, OsmAnd 5.4.11 (`net.osmand`). Bind OK; first call refused until the app was enabled in *Plugins*; then remove/add/updateMapLayer accepted and 48 synthetic points shown around Damascus |
 | `.osf` hand-over via ACTION_VIEW on a real device | Verified 2026-11-06 (Fold7, OsmAnd 5.4.11): OsmAnd shows its own import dialog; after import OsmAnd must be restarted to load the new tile source |

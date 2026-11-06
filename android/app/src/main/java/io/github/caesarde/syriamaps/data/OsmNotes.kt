@@ -17,6 +17,9 @@ data class ReportLocation(val latitude: Double, val longitude: Double, val sourc
     enum class Source { SHARED, OUR_POINT, DEVICE_GPS }
 }
 
+/** Where a report goes: a public OSM note, or the moderated Syria Maps server (community layer). */
+enum class ReportDestination { OSM_NOTE, COMMUNITY, OSM_EDIT }
+
 data class ReportDraft(
     val type: ReportType = ReportType.WRONG_NAME,
     val location: ReportLocation? = null,
@@ -27,6 +30,7 @@ data class ReportDraft(
     /** Kind of place for NEW_PLACE, e.g. "school". */
     val placeKind: String = "",
     val details: String = "",
+    val destination: ReportDestination = ReportDestination.OSM_NOTE,
 )
 
 /**
@@ -51,6 +55,7 @@ object NoteText {
         "clinic" to ("Clinic (amenity=clinic)" to "عيادة"),
         "fuel" to ("Fuel station (amenity=fuel)" to "محطة وقود"),
         "bakery" to ("Bakery (shop=bakery)" to "فرن"),
+        "water" to ("Water point (amenity=drinking_water)" to "نقطة مياه"),
         "other" to ("Other" to "أخرى"),
     )
 
@@ -82,6 +87,38 @@ object NoteText {
 
     /** OSM rejects very long notes; keep well below. */
     const val MAX_LENGTH = 2000
+}
+
+/**
+ * Body for POST /api/v1/submissions on the Syria Maps server (moderated community layer).
+ * Same completeness rules as the server (app.submissions.SubmissionIn); null when incomplete.
+ */
+object CommunitySubmission {
+    private val ARABIC = Regex("[\\u0600-\\u06FF]")
+
+    fun build(d: ReportDraft, licenseAccepted: Boolean): JSONObject? {
+        val loc = d.location ?: return null
+        val name = d.newName.trim()
+        val current = d.currentName.trim()
+        val details = d.details.trim()
+        val type = when (d.type) {
+            ReportType.NEW_PLACE -> if (name.isEmpty() && d.placeKind.isEmpty()) return null else "new_place"
+            ReportType.WRONG_NAME -> if (name.isEmpty()) return null else "wrong_name"
+            ReportType.CLOSED -> if (current.isEmpty() && details.isEmpty()) return null else "closed"
+            ReportType.OTHER -> if (details.isEmpty()) return null else "other"
+        }
+        return JSONObject().apply {
+            put("type", type)
+            put("lat", loc.latitude)
+            put("lon", loc.longitude)
+            if (d.type == ReportType.NEW_PLACE && d.placeKind.isNotEmpty()) put("kind", d.placeKind)
+            // The server keeps Arabic and Latin names apart; decide by the script the user typed.
+            if (name.isNotEmpty()) put(if (ARABIC.containsMatchIn(name)) "name_ar" else "name_en", name.take(200))
+            if (current.isNotEmpty()) put("current_name", current.take(200))
+            if (details.isNotEmpty()) put("details", details.take(1000))
+            put("license_accepted", licenseAccepted)
+        }
+    }
 }
 
 /** Finds coordinates in shared text or links (OsmAnd share text, geo: URIs, osm.org and osmand.net links). */

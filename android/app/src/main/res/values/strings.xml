@@ -18,11 +18,9 @@
     <string name="section_points">طبقات النقاط</string>
     <string name="points_explain">تُرسل هذه النقاط مباشرة إلى خريطة OsmAnd. تبقى ظاهرة ما دام OsmAnd يعمل، وتُعاد تلقائياً عند فتح هذا التطبيق.</string>
     <string name="sync_now">مزامنة الآن</string>
-    <string name="layer_points_count">%1$d نقطة على الخادم</string>
     <string name="layer_synthetic">بيانات تجريبية</string>
     <string name="sync_off">غير مفعلة</string>
     <string name="sync_running">جارٍ الإرسال إلى OsmAnd: %1$d من %2$d</string>
-    <string name="sync_done">ظاهرة في OsmAnd: %1$d نقطة</string>
     <string name="no_point_layers">لا توجد طبقات نقاط متاحة على هذا الخادم.</string>
 
     <string name="section_raster">طبقات الصور (Raster)</string>
@@ -133,4 +131,52 @@
     <string name="report_notification_text">اضغط لفتح شاشة البلاغ في خرائط سوريا</string>
     <string name="report_osmand_button_title">زر «أبلغ» داخل OsmAnd</string>
     <string name="report_osmand_button_text">عند الضغط على نقطة من خرائط سوريا في OsmAnd يظهر زر للإبلاغ. يحتاج إذن الإشعارات، لأن أندرويد لا يسمح بفتح التطبيق من الخلفية.</string>
+    <string name="report_dest_title">أرسل إلى</string>
+    <string name="report_dest_osm">OpenStreetMap</string>
+    <string name="report_dest_osm_sub">ملاحظة علنية للمتطوعين، تصل إلى خرائط OsmAnd</string>
+    <string name="report_dest_team">فريق خرائط سوريا</string>
+    <string name="report_dest_team_sub">يراجعها مشرف، وتظهر في طبقة «أماكن من المجتمع»</string>
+    <string name="report_team_notice">تصل إلى خادم خرائط سوريا ويراجعها مشرف قبل النشر. لا يُحفظ اسمك ولا عنوان IP. بعد القبول تُنشر الأماكن الجديدة بترخيص CC0 (حرة للجميع). لا تكتب بيانات شخصية، ولا تبلّغ عن مواقع عسكرية أو أمنية.</string>
+    <string name="report_team_confirm">أوافق على النشر بترخيص CC0</string>
+    <string name="report_send_team">إرسال إلى فريق خرائط سوريا</string>
+    <string name="report_sent_team_text">سيراجعها مشرف. إذا قُبل المكان الجديد يظهر في طبقة «أماكن من المجتمع» في التطبيق وفي OsmAnd.</string>
+    <string name="report_rate_limited">أرسلت كثيراً خلال وقت قصير. حاول مرة أخرى بعد ساعة.</string>
+    <string name="kind_water">نقطة مياه</string>
+    <plurals name="layer_points_count">
+        <item quantity="zero">لا نقاط على الخادم</item>
+        <item quantity="one">نقطة واحدة على الخادم</item>
+        <item quantity="two">نقطتان على الخادم</item>
+        <item quantity="few">%1$d نقاط على الخادم</item>
+        <item quantity="many">%1$d نقطة على الخادم</item>
+        <item quantity="other">%1$d نقطة على الخادم</item>
+    </plurals>
+    <plurals name="sync_done">
+        <item quantity="zero">ظاهرة في OsmAnd: لا نقاط</item>
+        <item quantity="one">ظاهرة في OsmAnd: نقطة واحدة</item>
+        <item quantity="two">ظاهرة في OsmAnd: نقطتان</item>
+        <item quantity="few">ظاهرة في OsmAnd: %1$d نقاط</item>
+        <item quantity="many">ظاهرة في OsmAnd: %1$d نقطة</item>
+        <item quantity="other">ظاهرة في OsmAnd: %1$d نقطة</item>
+    </plurals>
+    <string name="osm_dest_edit">تعديل OpenStreetMap مباشرة</string>
+    <string name="osm_dest_edit_sub">بحسابك في OSM: إضافة مكان أو تصحيح اسم فوراً</string>
+    <string name="osm_login_text">تحتاج حساباً مجانياً في OpenStreetMap. تُدخل كلمة المرور في موقع openstreetmap.org فقط، ولا يراها هذا التطبيق.</string>
+    <string name="osm_login">تسجيل الدخول عبر OpenStreetMap</string>
+    <string name="osm_logging_in">بانتظار تسجيل الدخول في المتصفح…</string>
+    <string name="osm_login_failed">لم يكتمل تسجيل الدخول. حاول مرة أخرى.</string>
+    <string name="osm_login_expired">انتهت صلاحية تسجيل الدخول. سجّل الدخول من جديد.</string>
+    <string name="osm_logged_in_as">مسجّل باسم: %1$s</string>
+    <string name="osm_logout">خروج</string>
+    <string name="osm_find_nearby">ابحث عن الشوارع والأماكن القريبة</string>
+    <string name="osm_searching">جارٍ البحث…</string>
+    <string name="osm_nearby_failed">تعذر تحميل بيانات OpenStreetMap القريبة.</string>
+    <string name="osm_nearby_empty">لا توجد أماكن أو شوارع لها أسماء قرب هذا الموقع.</string>
+    <string name="osm_edit_use_note">للأماكن المغلقة والمشاكل الأخرى استخدم «ملاحظة OpenStreetMap»، حتى يتحقق منها أحد على الأرض قبل الحذف.</string>
+    <string name="osm_preview">سيُكتب في OpenStreetMap:</string>
+    <string name="osm_edit_notice">التعديل يُنشر فوراً وعلنياً باسم حسابك في OSM، بترخيص ODbL. عدّل فقط ما تعرفه على الأرض، ولا تنسخ من خرائط Google أو غيرها.</string>
+    <string name="osm_edit_confirm">أعرف هذا المكان على الأرض</string>
+    <string name="osm_edit_send">رفع إلى OpenStreetMap</string>
+    <string name="osm_edit_conflict">عدّل شخص آخر هذا المكان للتو. ابحث من جديد وحاول مرة أخرى.</string>
+    <string name="osm_edit_sent_text">تعديلك منشور الآن على OpenStreetMap، ويصل إلى خرائط OsmAnd مع التحديث القادم.</string>
+    <string name="osm_view_changeset">عرض التعديل على OSM</string>
 </resources>

@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import Any, Protocol
 
 from app.geo import BBox
+from app.submissions import Submission
 
 VERIFICATION_STATUSES = ("unverified", "verified", "rejected")
 NOTICE_TYPES = (
@@ -107,5 +108,19 @@ class Storage(Protocol):
     def list_versions(self, layer_id: str | None = None) -> list[DatasetVersion]: ...
 
     def feature_counts(self) -> dict[str, int]: ...
+
+    # -- community submissions (see app.submissions) --
+    def add_submission(self, sub: Submission) -> None: ...
+
+    def get_submission(self, submission_id: str) -> Submission | None: ...
+
+    def list_submissions(self, status: str | None, limit: int, offset: int) -> tuple[list[Submission], int]: ...
+
+    def review_submission(
+        self, submission_id: str, status: str, note: str | None, feature: dict[str, Any] | None, meta: dict[str, Any],
+    ) -> Submission | None:
+        """Set the review result; if ``feature`` is given, upsert it into ``meta['layer_id']`` and add a
+        dataset version (one transaction in PostGIS)."""
+        ...
 
     def close(self) -> None: ...

@@ -14,11 +14,18 @@ from app.datasets import checksum, parse_time
 from app.geo import BBox
 from app.layers import Layer
 from app.storage.base import DatasetVersion, Feature, FeatureQuery, Notice, NoticeQuery
+from app.storage.memory import chained_checksum
+from app.submissions import Submission
 
 FEATURE_COLUMNS = """
     f.id, f.layer_id, f.external_id, f.kind, f.name_ar, f.name_en, f.properties,
     ST_AsGeoJSON(f.geom, 7)::json AS geometry, f.source, f.license, f.attribution,
     f.is_synthetic, f.updated_at
+"""
+
+SUBMISSION_COLUMNS = """
+    s.id, s.type, ST_Y(s.geom) AS lat, ST_X(s.geom) AS lon, s.kind, s.name_ar, s.name_en, s.current_name,
+    s.details, s.status, s.created_at, s.reviewed_at, s.review_note, s.feature_external_id
 """
 
 # Keep in sync with app.storage.memory.is_publishable.
@@ -143,6 +150,81 @@ class PostgisStorage:
         with self.pool.connection() as conn:
             rows = conn.execute("SELECT layer_id, count(*) AS c FROM features GROUP BY layer_id").fetchall()
         return {r["layer_id"]: r["c"] for r in rows}
+
+    # -- submissions ------------------------------------------------------
+
+    def add_submission(self, sub: Submission) -> None:
+        with self.pool.connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO submissions (id, type, geom, kind, name_ar, name_en, current_name, details, status, created_at)
+                VALUES (%s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (sub.id, sub.type, sub.lon, sub.lat, sub.kind, sub.name_ar, sub.name_en, sub.current_name,
+                 sub.details, sub.status, sub.created_at),
+            )
+
+    def get_submission(self, submission_id: str) -> Submission | None:
+        with self.pool.connection() as conn:
+            r = conn.execute(f"SELECT {SUBMISSION_COLUMNS} FROM submissions s WHERE s.id = %s", (submission_id,)).fetchone()
+        return Submission(**r) if r else None
+
+    def list_submissions(self, status: str | None, limit: int, offset: int) -> tuple[list[Submission], int]:
+        where = "WHERE s.status = %(status)s" if status else ""
+        params = {"status": status, "limit": limit, "offset": offset}
+        with self.pool.connection() as conn:
+            total = conn.execute(f"SELECT count(*) AS c FROM submissions s {where}", params).fetchone()["c"]
+            rows = conn.execute(
+                f"SELECT {SUBMISSION_COLUMNS} FROM submissions s {where} "
+                "ORDER BY s.created_at DESC LIMIT %(limit)s OFFSET %(offset)s",
+                params,
+            ).fetchall()
+        return [Submission(**r) for r in rows], total
+
+    def review_submission(self, submission_id, status, note, feature, meta):
+        with self.pool.connection() as conn, conn.transaction():
+            exists = conn.execute("SELECT 1 FROM submissions WHERE id = %s FOR UPDATE", (submission_id,)).fetchone()
+            if not exists:
+                return None
+            external_id = None
+            if feature is not None:
+                props = dict(feature["properties"])
+                external_id = str(props.pop("id"))
+                conn.execute(
+                    """
+                    INSERT INTO features (layer_id, external_id, kind, name_ar, name_en, properties, geom,
+                                          source, license, attribution, is_synthetic)
+                    VALUES (%s, %s, %s, %s, %s, %s, ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326), %s, %s, %s, %s)
+                    ON CONFLICT (layer_id, external_id) DO UPDATE SET
+                        kind = EXCLUDED.kind, name_ar = EXCLUDED.name_ar, name_en = EXCLUDED.name_en,
+                        properties = EXCLUDED.properties, geom = EXCLUDED.geom, updated_at = now()
+                    """,
+                    (meta["layer_id"], external_id, props.pop("kind", None), props.pop("name_ar", None),
+                     props.pop("name_en", None), Jsonb(props), json.dumps(feature["geometry"]), meta["source"],
+                     meta["license"], meta["attribution"], bool(meta.get("synthetic", False))),
+                )
+                last = conn.execute(
+                    "SELECT version, checksum FROM dataset_versions WHERE layer_id = %s ORDER BY version DESC LIMIT 1",
+                    (meta["layer_id"],),
+                ).fetchone()
+                count = conn.execute(
+                    "SELECT count(*) AS c FROM features WHERE layer_id = %s", (meta["layer_id"],)
+                ).fetchone()["c"]
+                conn.execute(
+                    "INSERT INTO dataset_versions (layer_id, version, checksum, feature_count) VALUES (%s, %s, %s, %s)",
+                    (meta["layer_id"], (last["version"] if last else 0) + 1,
+                     chained_checksum(last["checksum"] if last else "", feature), count),
+                )
+            conn.execute(
+                """
+                UPDATE submissions SET status = %s, review_note = %s, reviewed_at = now(),
+                       feature_external_id = COALESCE(%s, feature_external_id)
+                WHERE id = %s
+                """,
+                (status, note, external_id, submission_id),
+            )
+            r = conn.execute(f"SELECT {SUBMISSION_COLUMNS} FROM submissions s WHERE s.id = %s", (submission_id,)).fetchone()
+        return Submission(**r)
 
     # -- writes (CLI only) -------------------------------------------------
 

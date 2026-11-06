@@ -33,6 +33,24 @@ class SettingsStore(context: Context) {
         get() = prefs.getBoolean(KEY_REPORT_BUTTON, false)
         set(value) = prefs.edit().putBoolean(KEY_REPORT_BUTTON, value).apply()
 
+    /** OpenStreetMap OAuth2 access token (app-private storage) and the account's display name. */
+    var osmToken: String?
+        get() = prefs.getString(KEY_OSM_TOKEN, null)
+        set(value) = prefs.edit().putString(KEY_OSM_TOKEN, value).apply()
+
+    var osmUser: String?
+        get() = prefs.getString(KEY_OSM_USER, null)
+        set(value) = prefs.edit().putString(KEY_OSM_USER, value).apply()
+
+    /** PKCE verifier and state of a login in progress (the browser round trip). */
+    var osmPending: Pair<String, String>?
+        get() {
+            val v = prefs.getString(KEY_OSM_VERIFIER, null) ?: return null
+            val s = prefs.getString(KEY_OSM_STATE, null) ?: return null
+            return v to s
+        }
+        set(value) = prefs.edit().putString(KEY_OSM_VERIFIER, value?.first).putString(KEY_OSM_STATE, value?.second).apply()
+
     var setupDone: Boolean
         get() = prefs.getBoolean(KEY_SETUP_DONE, false)
         set(value) = prefs.edit().putBoolean(KEY_SETUP_DONE, value).apply()
@@ -43,6 +61,10 @@ class SettingsStore(context: Context) {
         private const val KEY_THEME = "theme"
         private const val KEY_SETUP_DONE = "setup_done"
         private const val KEY_REPORT_BUTTON = "osmand_report_button"
+        private const val KEY_OSM_TOKEN = "osm_token"
+        private const val KEY_OSM_USER = "osm_user"
+        private const val KEY_OSM_VERIFIER = "osm_pkce_verifier"
+        private const val KEY_OSM_STATE = "osm_pkce_state"
         private const val KEY_SERVER = "server_url"
         private const val KEY_ENABLED = "enabled_layers"
         private const val KEY_PACKAGE = "osmand_package"

@@ -18,11 +18,9 @@
     <string name="section_points">Punkt-Ebenen</string>
     <string name="points_explain">Diese Punkte werden direkt an die OsmAnd-Karte gesendet. Sie bleiben sichtbar, solange OsmAnd läuft, und werden beim Öffnen dieser App automatisch erneut gesendet.</string>
     <string name="sync_now">Jetzt synchronisieren</string>
-    <string name="layer_points_count">%1$d Punkte auf dem Server</string>
     <string name="layer_synthetic">Testdaten</string>
     <string name="sync_off">Aus</string>
     <string name="sync_running">Sende an OsmAnd: %1$d von %2$d</string>
-    <string name="sync_done">In OsmAnd sichtbar: %1$d Punkte</string>
     <string name="no_point_layers">Auf diesem Server gibt es keine Punkt-Ebenen.</string>
 
     <string name="section_raster">Bild-Ebenen (Raster)</string>
@@ -133,4 +131,44 @@
     <string name="report_notification_text">Tippen, um die Meldung in Syria Maps zu öffnen</string>
     <string name="report_osmand_button_title">„Melden“-Button in OsmAnd</string>
     <string name="report_osmand_button_text">Bei Syria-Maps-Punkten in OsmAnd erscheint ein Melde-Button. Braucht die Berechtigung für Benachrichtigungen, weil Android Apps nicht aus dem Hintergrund öffnen lässt.</string>
+    <string name="report_dest_title">Senden an</string>
+    <string name="report_dest_osm">OpenStreetMap</string>
+    <string name="report_dest_osm_sub">Öffentliche Notiz für Freiwillige, landet in den OsmAnd-Karten</string>
+    <string name="report_dest_team">Syria-Maps-Team</string>
+    <string name="report_dest_team_sub">Ein Moderator prüft sie; erscheint in „Orte aus der Community“</string>
+    <string name="report_team_notice">Geht an den Syria-Maps-Server und wird vor der Veröffentlichung von einem Moderator geprüft. Dein Name und deine IP-Adresse werden nicht gespeichert. Angenommene neue Orte werden unter CC0 (frei für alle) veröffentlicht. Keine persönlichen Daten eintragen und keine militärischen oder sicherheitsrelevanten Orte melden.</string>
+    <string name="report_team_confirm">Ich stimme der Veröffentlichung unter CC0 zu</string>
+    <string name="report_send_team">An das Syria-Maps-Team senden</string>
+    <string name="report_sent_team_text">Ein Moderator prüft sie. Wird der neue Ort angenommen, erscheint er in der Ebene „Orte aus der Community“ in der App und in OsmAnd.</string>
+    <string name="report_rate_limited">Zu viele Meldungen in kurzer Zeit. Bitte in einer Stunde erneut versuchen.</string>
+    <string name="kind_water">Wasserstelle</string>
+    <plurals name="layer_points_count">
+        <item quantity="one">%1$d Punkt auf dem Server</item>
+        <item quantity="other">%1$d Punkte auf dem Server</item>
+    </plurals>
+    <plurals name="sync_done">
+        <item quantity="one">In OsmAnd sichtbar: %1$d Punkt</item>
+        <item quantity="other">In OsmAnd sichtbar: %1$d Punkte</item>
+    </plurals>
+    <string name="osm_dest_edit">OpenStreetMap direkt bearbeiten</string>
+    <string name="osm_dest_edit_sub">Mit deinem OSM-Konto: Ort hinzufügen oder Namen sofort korrigieren</string>
+    <string name="osm_login_text">Du brauchst ein kostenloses OpenStreetMap-Konto. Das Passwort gibst du nur auf openstreetmap.org ein; diese App sieht es nie.</string>
+    <string name="osm_login">Mit OpenStreetMap anmelden</string>
+    <string name="osm_logging_in">Warte auf die Anmeldung im Browser…</string>
+    <string name="osm_login_failed">Anmeldung nicht abgeschlossen. Bitte erneut versuchen.</string>
+    <string name="osm_login_expired">Die Anmeldung ist abgelaufen. Bitte erneut anmelden.</string>
+    <string name="osm_logged_in_as">Angemeldet als: %1$s</string>
+    <string name="osm_logout">Abmelden</string>
+    <string name="osm_find_nearby">Straßen und Orte in der Nähe suchen</string>
+    <string name="osm_searching">Suche…</string>
+    <string name="osm_nearby_failed">OpenStreetMap-Daten in der Nähe konnten nicht geladen werden.</string>
+    <string name="osm_nearby_empty">Keine benannten Orte oder Straßen in der Nähe.</string>
+    <string name="osm_edit_use_note">Für geschlossene Orte und andere Probleme bitte eine OpenStreetMap-Notiz senden, damit jemand vor Ort prüft, bevor etwas gelöscht wird.</string>
+    <string name="osm_preview">Wird in OpenStreetMap geschrieben:</string>
+    <string name="osm_edit_notice">Die Änderung ist sofort öffentlich, unter deinem OSM-Konto und unter ODbL. Bearbeite nur, was du vor Ort kennst, und kopiere nichts aus Google Maps oder anderen Karten.</string>
+    <string name="osm_edit_confirm">Ich kenne diesen Ort vor Ort</string>
+    <string name="osm_edit_send">Zu OpenStreetMap hochladen</string>
+    <string name="osm_edit_conflict">Jemand anderes hat diesen Ort gerade bearbeitet. Bitte neu suchen und erneut versuchen.</string>
+    <string name="osm_edit_sent_text">Deine Änderung ist jetzt auf OpenStreetMap und kommt mit dem nächsten Update in die OsmAnd-Karten.</string>
+    <string name="osm_view_changeset">Änderung auf OSM ansehen</string>
 </resources>

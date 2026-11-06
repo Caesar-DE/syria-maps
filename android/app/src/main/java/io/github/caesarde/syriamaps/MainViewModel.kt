@@ -15,7 +15,17 @@ import androidx.lifecycle.viewModelScope
 import io.github.caesarde.syriamaps.data.ApiClient
 import io.github.caesarde.syriamaps.data.Integration
 import io.github.caesarde.syriamaps.data.LayerInfo
+import io.github.caesarde.syriamaps.data.CommunitySubmission
+import io.github.caesarde.syriamaps.data.OsmApiException
+import io.github.caesarde.syriamaps.data.OsmAuth
+import io.github.caesarde.syriamaps.data.OsmEdit
+import io.github.caesarde.syriamaps.data.OsmEditor
+import io.github.caesarde.syriamaps.data.OsmElement
+import io.github.caesarde.syriamaps.data.OsmXml
+import io.github.caesarde.syriamaps.data.Pkce
+import io.github.caesarde.syriamaps.data.ReportType
 import io.github.caesarde.syriamaps.data.NoteText
+import io.github.caesarde.syriamaps.data.ReportDestination
 import io.github.caesarde.syriamaps.data.OsmNotesClient
 import io.github.caesarde.syriamaps.data.PointFeature
 import io.github.caesarde.syriamaps.data.ReportDraft
@@ -85,14 +95,36 @@ data class UiState(
     /** True when the report was opened from another app (share / OsmAnd button): close returns there. */
     val reportFromOutside: Boolean = false,
     val osmandReportButton: Boolean = false,
+    val osm: OsmState = OsmState(),
 )
+
+/** Direct OpenStreetMap editing (stage 2). */
+data class OsmState(
+    /** False when the build has no OAuth client id: the option is hidden. */
+    val available: Boolean = false,
+    val user: String? = null,
+    val loggingIn: Boolean = false,
+    val loginFailed: Boolean = false,
+    val loadingNearby: Boolean = false,
+    val nearbyFailed: Boolean = false,
+    val nearby: List<OsmElement>? = null,
+    val selectedId: String? = null,
+) {
+    val selected: OsmElement? get() = nearby?.firstOrNull { "${it.type}/${it.id}" == selectedId }
+}
 
 /** Sending state of the report screen. */
 sealed interface ReportStatus {
     data object Editing : ReportStatus
     data object Sending : ReportStatus
-    data class Sent(val noteId: Long, val url: String) : ReportStatus
+    /** [url] is the public OSM note; null for community submissions (private until reviewed). */
+    data class Sent(val id: String, val url: String?, val community: Boolean) : ReportStatus
     data object Failed : ReportStatus
+    data object RateLimited : ReportStatus
+    /** The OSM object changed since it was loaded (someone else edited it). */
+    data object Conflict : ReportStatus
+    /** The OSM login expired or was revoked. */
+    data object LoginNeeded : ReportStatus
     data object Locating : ReportStatus
     data object NoLocationFix : ReportStatus
 }
@@ -117,6 +149,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { onOsmAndPointReport(layerId, pointId) }
     }
     private val notes = OsmNotesClient(BuildConfig.OSM_API)
+    private val osmAuth = OsmAuth(BuildConfig.OSM_WEB, BuildConfig.OSM_CLIENT_ID)
 
     private val _state = MutableStateFlow(
         UiState(
@@ -126,6 +159,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             themeMode = settings.themeMode,
             setupDone = settings.setupDone,
             osmandReportButton = settings.osmandReportButton,
+            osm = OsmState(available = BuildConfig.OSM_CLIENT_ID.isNotBlank(), user = settings.osmUser),
         ),
     )
     val state: StateFlow<UiState> = _state.asStateFlow()
@@ -251,9 +285,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Reloads the layer list (new layers, counts, versions) and re-sends every enabled layer. */
     fun syncNow() {
         refreshOsmAnd()
-        if (_state.value.layers.isEmpty()) loadLayers() else resyncEnabled()
+        loadLayers()
     }
 
     private fun resyncEnabled() {
@@ -352,6 +387,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 report = ReportDraft(location = location, currentName = currentName),
                 reportStatus = ReportStatus.Editing,
                 reportFromOutside = fromOutside,
+                osm = it.osm.copy(nearby = null, selectedId = null, nearbyFailed = false),
             )
         }
     }
@@ -366,16 +402,133 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun submitReport() {
         val draft = _state.value.report ?: return
         val loc = draft.location ?: return
-        val text = NoteText.build(draft) ?: return
         if (_state.value.reportStatus is ReportStatus.Sending) return
+        if (draft.destination == ReportDestination.OSM_EDIT) return submitOsmEdit(draft)
+        val community = draft.destination == ReportDestination.COMMUNITY
+        val noteText = NoteText.build(draft)
+        val communityBody = CommunitySubmission.build(draft, licenseAccepted = true)
+        if ((community && communityBody == null) || (!community && noteText == null)) return
         viewModelScope.launch {
             _state.update { it.copy(reportStatus = ReportStatus.Sending) }
             val status = try {
-                val id = notes.create(loc.latitude, loc.longitude, text)
-                ReportStatus.Sent(id, notes.noteUrl(id))
+                if (community) {
+                    ReportStatus.Sent(api().submit(communityBody!!), null, community = true)
+                } else {
+                    val id = notes.create(loc.latitude, loc.longitude, noteText!!)
+                    ReportStatus.Sent(id.toString(), notes.noteUrl(id), community = false)
+                }
+            } catch (e: io.github.caesarde.syriamaps.data.ApiException) {
+                if (e.httpCode == 429) ReportStatus.RateLimited else ReportStatus.Failed
             } catch (_: IOException) {
                 ReportStatus.Failed
             } catch (_: org.json.JSONException) {
+                ReportStatus.Failed
+            }
+            _state.update { it.copy(reportStatus = status) }
+        }
+    }
+
+    /* ---------- Direct OpenStreetMap editing ---------- */
+
+    fun loginOsm() {
+        if (!osmAuth.configured) return
+        val verifier = Pkce.verifier()
+        val state = Pkce.state()
+        settings.osmPending = verifier to state
+        _state.update { it.copy(osm = it.osm.copy(loggingIn = true, loginFailed = false)) }
+        _intents.value = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(osmAuth.authorizeUrl(Pkce.challenge(verifier), state)))
+    }
+
+    /** OAuth2 redirect back into the app (io.github.caesarde.syriamaps://oauth2?code=…&state=…). */
+    fun onOsmRedirect(uri: android.net.Uri) {
+        val pending = settings.osmPending
+        settings.osmPending = null
+        val code = uri.getQueryParameter("code")
+        if (pending == null || code == null || uri.getQueryParameter("state") != pending.second) {
+            _state.update { it.copy(osm = it.osm.copy(loggingIn = false, loginFailed = true)) }
+            return
+        }
+        viewModelScope.launch {
+            try {
+                val token = osmAuth.exchange(code, pending.first)
+                val name = OsmEditor(BuildConfig.OSM_API, token, BuildConfig.VERSION_NAME).displayName()
+                settings.osmToken = token
+                settings.osmUser = name
+                _state.update { it.copy(osm = it.osm.copy(user = name, loggingIn = false, loginFailed = false)) }
+            } catch (_: IOException) {
+                _state.update { it.copy(osm = it.osm.copy(loggingIn = false, loginFailed = true)) }
+            } catch (_: org.json.JSONException) {
+                _state.update { it.copy(osm = it.osm.copy(loggingIn = false, loginFailed = true)) }
+            }
+        }
+    }
+
+    fun logoutOsm() {
+        settings.osmToken = null
+        settings.osmUser = null
+        _state.update { it.copy(osm = it.osm.copy(user = null, nearby = null, selectedId = null)) }
+    }
+
+    /** Named OSM objects around the report location, for choosing what to rename. */
+    fun loadOsmNearby() {
+        val loc = _state.value.report?.location ?: return
+        val token = settings.osmToken ?: return
+        viewModelScope.launch {
+            _state.update { it.copy(osm = it.osm.copy(loadingNearby = true, nearbyFailed = false, nearby = null, selectedId = null)) }
+            try {
+                val list = OsmEditor(BuildConfig.OSM_API, token, BuildConfig.VERSION_NAME).nearby(loc.latitude, loc.longitude)
+                _state.update { it.copy(osm = it.osm.copy(loadingNearby = false, nearby = list)) }
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                _state.update { it.copy(osm = it.osm.copy(loadingNearby = false, nearbyFailed = true)) }
+            }
+        }
+    }
+
+    fun selectOsmElement(element: OsmElement) =
+        _state.update { it.copy(osm = it.osm.copy(selectedId = "${element.type}/${element.id}")) }
+
+    /** The exact change for the preview; null while incomplete or for types handled by notes. */
+    fun pendingOsmEdit(): OsmEdit? = buildOsmEdit(_state.value.report, _state.value.osm.selected)
+
+    private fun buildOsmEdit(draft: ReportDraft?, selected: OsmElement?): OsmEdit? {
+        val loc = draft?.location ?: return null
+        return when (draft.type) {
+            ReportType.NEW_PLACE -> {
+                val tags = OsmXml.newPlaceTags(draft.placeKind, draft.newName) ?: return null
+                val what = draft.placeKind.replace('_', ' ')
+                val label = draft.newName.trim().ifEmpty { what }
+                OsmEdit.AddNode(loc.latitude, loc.longitude, tags, "Add $what: $label (Syria Maps app)")
+            }
+            ReportType.WRONG_NAME -> {
+                val el = selected ?: return null
+                if (draft.newName.isBlank()) return null
+                val tags = OsmXml.renamedTags(el.tags, draft.newName)
+                if (tags == el.tags) return null
+                OsmEdit.Retag(el, tags, "Correct name: ${el.name ?: el.type + " " + el.id} -> ${draft.newName.trim()} (Syria Maps app)")
+            }
+            else -> null
+        }
+    }
+
+    private fun submitOsmEdit(draft: ReportDraft) {
+        val token = settings.osmToken ?: return
+        val edit = buildOsmEdit(draft, _state.value.osm.selected) ?: return
+        viewModelScope.launch {
+            _state.update { it.copy(reportStatus = ReportStatus.Sending) }
+            val status = try {
+                val changeset = OsmEditor(BuildConfig.OSM_API, token, BuildConfig.VERSION_NAME).apply(edit)
+                ReportStatus.Sent(changeset.toString(), "${BuildConfig.OSM_WEB}/changeset/$changeset", community = false)
+            } catch (e: OsmApiException) {
+                when (e.httpCode) {
+                    401, 403 -> {
+                        logoutOsm()
+                        ReportStatus.LoginNeeded
+                    }
+                    409 -> ReportStatus.Conflict
+                    else -> ReportStatus.Failed
+                }
+            } catch (_: IOException) {
                 ReportStatus.Failed
             }
             _state.update { it.copy(reportStatus = status) }

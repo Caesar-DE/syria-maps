@@ -11,7 +11,7 @@ from app import __version__
 from app.cache import TTLCache
 from app.config import Settings, get_settings
 from app.layers import LayerRegistry, load_registry
-from app.routes import datasets, features, layers, meta, notices, osmand, tiles
+from app.routes import datasets, features, layers, meta, notices, osmand, submissions, tiles
 from app.storage import create_storage
 from app.storage.base import Storage
 
@@ -22,6 +22,7 @@ Open-source data service for the **Syria Maps** OsmAnd extension.
 * Transparent PNG overlay tiles usable as an OsmAnd online map source
 * Versioned dataset downloads (GeoJSON, GPX) and the generated `.osf` package
 * Verified-only traffic and safety notices
+* Community submissions, published in `community-places` only after moderation
 
 Development fixtures are **synthetic** and flagged with `synthetic: true`.
 """
@@ -61,7 +62,7 @@ def create_app(
         allow_methods=["GET", "HEAD"],
         allow_headers=["*"],
     )
-    for module in (meta, layers, features, notices, datasets, tiles, osmand):
+    for module in (meta, layers, features, notices, datasets, tiles, osmand, submissions):
         app.include_router(module.router)
     logging.getLogger("syria_maps").info("storage=%s layers=%d", settings.storage, len(app.state.registry.all()))
     return app

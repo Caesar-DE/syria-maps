@@ -1,0 +1,31 @@
+# Places sent in by app users and accepted by a moderator (POST /api/v1/submissions).
+id: community-places
+title:
+  ar: أماكن من المجتمع
+  en: Community places
+description:
+  ar: أماكن أرسلها مستخدمو تطبيق خرائط سوريا، ونُشرت فقط بعد موافقة مشرف.
+  en: Places sent in by Syria Maps app users, published only after a moderator accepted them.
+category: community
+status: implemented
+geometry_types: [Point]
+license: CC0-1.0
+attribution: Syria Maps contributors
+source:
+  name: Syria Maps community submissions (moderated)
+zoom: { min: 10, max: 19 }
+tiles: true
+osmand:
+  map_source: true
+kinds:
+  school: { color: "#f9a825", label: { ar: مدرسة, en: School } }
+  pharmacy: { color: "#2e7d32", label: { ar: صيدلية, en: Pharmacy } }
+  hospital: { color: "#d32f2f", label: { ar: مستشفى, en: Hospital } }
+  clinic: { color: "#e57373", label: { ar: عيادة, en: Clinic } }
+  fuel: { color: "#6a1b9a", label: { ar: محطة وقود, en: Fuel station } }
+  bakery: { color: "#8d6e63", label: { ar: فرن, en: Bakery } }
+  water: { color: "#0288d1", label: { ar: نقطة مياه, en: Water point } }
+  other: { color: "#546e7a", label: { ar: أخرى, en: Other } }
+notes:
+  ar: يوافق المرسل على نشر مساهمته بترخيص CC0. لا تُحفظ أسماء المرسلين ولا عناوين IP.
+  en: Senders agree to publish their contribution under CC0. No sender names or IP addresses are stored.

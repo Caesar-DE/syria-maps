@@ -73,3 +73,28 @@ class OsmNotesTest {
         assertTrue(text.length <= NoteText.MAX_LENGTH)
     }
 }
+
+class CommunitySubmissionTest {
+    private val here = ReportLocation(33.5, 36.3, ReportLocation.Source.SHARED)
+
+    @Test
+    fun `new place maps to server fields and splits names by script`() {
+        val ar = CommunitySubmission.build(ReportDraft(type = ReportType.NEW_PLACE, location = here, newName = "مدرسة الأمل", placeKind = "school"), true)!!
+        assertEquals("new_place", ar.getString("type"))
+        assertEquals("school", ar.getString("kind"))
+        assertEquals("مدرسة الأمل", ar.getString("name_ar"))
+        assertTrue(!ar.has("name_en"))
+        assertTrue(ar.getBoolean("license_accepted"))
+        val en = CommunitySubmission.build(ReportDraft(type = ReportType.NEW_PLACE, location = here, newName = "Al-Amal School"), true)!!
+        assertEquals("Al-Amal School", en.getString("name_en"))
+        assertTrue(!en.has("kind"))
+    }
+
+    @Test
+    fun `incomplete drafts are not sent`() {
+        assertNull(CommunitySubmission.build(ReportDraft(type = ReportType.NEW_PLACE, location = null, newName = "x"), true))
+        assertNull(CommunitySubmission.build(ReportDraft(type = ReportType.WRONG_NAME, location = here, currentName = "x"), true))
+        assertNull(CommunitySubmission.build(ReportDraft(type = ReportType.OTHER, location = here), true))
+        assertNotNull(CommunitySubmission.build(ReportDraft(type = ReportType.CLOSED, location = here, currentName = "فرن"), true))
+    }
+}

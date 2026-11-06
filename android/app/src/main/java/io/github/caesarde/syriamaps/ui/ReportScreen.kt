@@ -54,18 +54,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import io.github.caesarde.syriamaps.BuildConfig
 import io.github.caesarde.syriamaps.MainViewModel
 import io.github.caesarde.syriamaps.R
 import io.github.caesarde.syriamaps.ReportStatus
 import io.github.caesarde.syriamaps.UiState
+import io.github.caesarde.syriamaps.data.CommunitySubmission
 import io.github.caesarde.syriamaps.data.NoteText
+import io.github.caesarde.syriamaps.data.OsmEdit
+import io.github.caesarde.syriamaps.data.ReportDestination
 import io.github.caesarde.syriamaps.data.ReportDraft
 import io.github.caesarde.syriamaps.data.ReportLocation
 import io.github.caesarde.syriamaps.data.ReportType
@@ -106,7 +111,7 @@ fun ReportScreen(state: UiState, vm: MainViewModel, onUseLocation: () -> Unit) {
                     contentAlignment = Alignment.Center,
                 ) { InkIcon(InkGlyph.Close, size = 22.dp, ink = c.ink) }
             }
-            if (BuildConfig.DEBUG) {
+            if (BuildConfig.DEBUG && draft.destination == ReportDestination.OSM_NOTE) {
                 Text(
                     stringResource(R.string.report_test_server),
                     style = MaterialTheme.typography.labelSmall,
@@ -123,9 +128,9 @@ fun ReportScreen(state: UiState, vm: MainViewModel, onUseLocation: () -> Unit) {
                 label = "sent",
             ) { sent ->
                 if (sent && status is ReportStatus.Sent) {
-                    SentView(status, vm::closeReport)
+                    SentView(status, draft.destination == ReportDestination.OSM_EDIT, vm::closeReport)
                 } else {
-                    EditView(draft, status, vm, onUseLocation)
+                    EditView(state, draft, status, vm, onUseLocation)
                 }
             }
         }
@@ -133,18 +138,30 @@ fun ReportScreen(state: UiState, vm: MainViewModel, onUseLocation: () -> Unit) {
 }
 
 @Composable
-private fun EditView(draft: ReportDraft, status: ReportStatus, vm: MainViewModel, onUseLocation: () -> Unit) {
+private fun EditView(state: UiState, draft: ReportDraft, status: ReportStatus, vm: MainViewModel, onUseLocation: () -> Unit) {
     val c = LocalInk.current
-    var understood by rememberSaveable { mutableStateOf(false) }
-    val text = NoteText.build(draft)
+    var understood by rememberSaveable(draft.destination) { mutableStateOf(false) }
+    val community = draft.destination == ReportDestination.COMMUNITY
+    val direct = draft.destination == ReportDestination.OSM_EDIT
+    val edit = if (direct && state.osm.user != null) vm.pendingOsmEdit() else null
+    val complete = when {
+        direct -> edit != null
+        community -> CommunitySubmission.build(draft, true) != null
+        else -> NoteText.build(draft) != null
+    }
     Column(Modifier.fillMaxSize()) {
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            Appear(0) {
+                DestinationPicker(draft.destination, showDirect = state.osm.available) { vm.updateReport(draft.copy(destination = it)) }
+            }
             Appear(0) { TypePicker(draft.type) { vm.updateReport(draft.copy(type = it)) } }
             Appear(1) { LocationCard(draft.location, status, onUseLocation) }
-            Appear(2) { FieldsCard(draft) { vm.updateReport(it) } }
+            Appear(2) {
+                if (direct) OsmEditCard(state, draft, edit, vm) else FieldsCard(draft) { vm.updateReport(it) }
+            }
             Appear(3) {
                 Row(
                     Modifier
@@ -157,17 +174,44 @@ private fun EditView(draft: ReportDraft, status: ReportStatus, vm: MainViewModel
                     InkIcon(InkGlyph.Shield, size = 28.dp, ink = c.ink, fill = if (c.dark) Palette.Graphite else Palette.Yellow)
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(stringResource(R.string.report_public_notice), color = c.text, style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            stringResource(
+                                when {
+                                    direct -> R.string.osm_edit_notice
+                                    community -> R.string.report_team_notice
+                                    else -> R.string.report_public_notice
+                                },
+                            ),
+                            color = c.text, style = MaterialTheme.typography.bodySmall,
+                        )
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             CheckBox(understood)
                             Spacer(Modifier.width(10.dp))
-                            Text(stringResource(R.string.report_public_confirm), color = c.text, fontWeight = FontWeight.SemiBold)
+                            Text(
+                                stringResource(
+                                    when {
+                                        direct -> R.string.osm_edit_confirm
+                                        community -> R.string.report_team_confirm
+                                        else -> R.string.report_public_confirm
+                                    },
+                                ),
+                                color = c.text, fontWeight = FontWeight.SemiBold,
+                            )
                         }
                     }
                 }
             }
             AnimatedVisibility(status is ReportStatus.Failed, enter = fadeIn() + expandVertically(), exit = fadeOut() + shrinkVertically()) {
                 ProblemLine(stringResource(R.string.report_failed))
+            }
+            AnimatedVisibility(status is ReportStatus.RateLimited, enter = fadeIn() + expandVertically(), exit = fadeOut() + shrinkVertically()) {
+                ProblemLine(stringResource(R.string.report_rate_limited))
+            }
+            AnimatedVisibility(status is ReportStatus.Conflict, enter = fadeIn() + expandVertically(), exit = fadeOut() + shrinkVertically()) {
+                ProblemLine(stringResource(R.string.osm_edit_conflict))
+            }
+            AnimatedVisibility(status is ReportStatus.LoginNeeded, enter = fadeIn() + expandVertically(), exit = fadeOut() + shrinkVertically()) {
+                ProblemLine(stringResource(R.string.osm_login_expired))
             }
             Spacer(Modifier.height(4.dp))
         }
@@ -177,13 +221,52 @@ private fun EditView(draft: ReportDraft, status: ReportStatus, vm: MainViewModel
             while (sending) spin.animateTo(spin.value + 360f, tween(900, easing = LinearEasing))
         }
         InkButton(
-            stringResource(if (sending) R.string.report_sending else R.string.report_send),
+            stringResource(
+                when {
+                    sending -> R.string.report_sending
+                    direct -> R.string.osm_edit_send
+                    community -> R.string.report_send_team
+                    else -> R.string.report_send
+                },
+            ),
             vm::submitReport,
             Modifier.fillMaxWidth().padding(top = 10.dp),
             glyph = if (sending) InkGlyph.Sync else InkGlyph.Flag,
-            enabled = text != null && understood && !sending,
+            enabled = complete && understood && !sending,
             iconRotation = spin.value,
         )
+    }
+}
+
+/** OpenStreetMap note (public, no account) or the Syria Maps team (moderated community layer). */
+@Composable
+private fun DestinationPicker(current: ReportDestination, showDirect: Boolean, onPick: (ReportDestination) -> Unit) {
+    val c = LocalInk.current
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(stringResource(R.string.report_dest_title), color = c.text, style = MaterialTheme.typography.labelLarge)
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            listOfNotNull(
+                Triple(ReportDestination.OSM_NOTE, R.string.report_dest_osm, R.string.report_dest_osm_sub),
+                Triple(ReportDestination.COMMUNITY, R.string.report_dest_team, R.string.report_dest_team_sub),
+                if (showDirect) Triple(ReportDestination.OSM_EDIT, R.string.osm_dest_edit, R.string.osm_dest_edit_sub) else null,
+            ).forEach { (dest, title, subtitle) ->
+                val selected = dest == current
+                val bg by animateColorAsState(if (selected) Palette.Yellow else c.paper, tween(250), label = "dest")
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .inkSurface(bg, if (selected) Palette.Ink else c.ink, shadow = if (selected) Palette.Ink else c.shadow,
+                            radius = 16.dp, offset = if (selected) 4.dp else 2.dp)
+                        .clickable(remember { MutableInteractionSource() }, null, role = Role.RadioButton) { onPick(dest) }
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Text(stringResource(title), color = if (selected) Palette.Ink else c.text, fontWeight = FontWeight.Bold)
+                    Text(stringResource(subtitle), color = if (selected) Palette.Brown else c.muted,
+                        style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
     }
 }
 
@@ -335,6 +418,113 @@ private fun FieldsCard(draft: ReportDraft, onChange: (ReportDraft) -> Unit) {
     }
 }
 
+/** Direct OpenStreetMap editing: login, then add a place or pick a nearby object to rename, with a preview. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun OsmEditCard(state: UiState, draft: ReportDraft, edit: OsmEdit?, vm: MainViewModel) {
+    val c = LocalInk.current
+    val osm = state.osm
+    Column(
+        Modifier.fillMaxWidth().inkSurface(c.paper, c.ink, shadow = c.shadow).padding(16.dp)
+            .animateContentSize(spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow)),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        if (osm.user == null) {
+            Text(stringResource(R.string.osm_login_text), color = c.text, style = MaterialTheme.typography.bodySmall)
+            InkButton(
+                stringResource(if (osm.loggingIn) R.string.osm_logging_in else R.string.osm_login),
+                vm::loginOsm, Modifier.fillMaxWidth(), InkGlyph.Shield,
+            )
+            AnimatedVisibility(osm.loginFailed) { ProblemLine(stringResource(R.string.osm_login_failed)) }
+            return@Column
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.osm_logged_in_as, osm.user), color = c.text, fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f))
+            Text(
+                stringResource(R.string.osm_logout), color = c.muted, style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.clickable(remember { MutableInteractionSource() }, null, role = Role.Button, onClick = vm::logoutOsm)
+                    .padding(6.dp),
+            )
+        }
+        when (draft.type) {
+            ReportType.NEW_PLACE -> {
+                Text(stringResource(R.string.report_place_kind), color = c.text, style = MaterialTheme.typography.labelLarge)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    PLACE_KIND_LABELS.filter { it.first != "other" }.forEach { (key, label) ->
+                        InkChip(stringResource(label), draft.placeKind == key) { vm.updateReport(draft.copy(placeKind = key)) }
+                    }
+                }
+                InkField(draft.newName, { vm.updateReport(draft.copy(newName = it)) }, stringResource(R.string.report_place_name))
+            }
+            ReportType.WRONG_NAME -> {
+                InkButton(
+                    stringResource(if (osm.loadingNearby) R.string.osm_searching else R.string.osm_find_nearby),
+                    vm::loadOsmNearby, Modifier.fillMaxWidth(), InkGlyph.Navigate, InkButtonStyle.Secondary,
+                    enabled = draft.location != null && !osm.loadingNearby,
+                )
+                AnimatedVisibility(osm.nearbyFailed) { ProblemLine(stringResource(R.string.osm_nearby_failed)) }
+                osm.nearby?.let { list ->
+                    if (list.isEmpty()) Text(stringResource(R.string.osm_nearby_empty), color = c.muted, style = MaterialTheme.typography.bodySmall)
+                    list.forEachIndexed { i, el ->
+                        ChoiceCard(osm.selectedId == "${el.type}/${el.id}", { vm.selectOsmElement(el) }, i) {
+                            Column {
+                                Text(el.name ?: "—", fontWeight = FontWeight.Bold,
+                                    color = if (osm.selectedId == "${el.type}/${el.id}") Palette.Ink else c.text)
+                                Text(
+                                    "\u2066" + listOfNotNull(el.kindHint, "${el.distanceM.toInt()} m").joinToString(" · ") + "\u2069",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (osm.selectedId == "${el.type}/${el.id}") Palette.Brown else c.muted,
+                                )
+                            }
+                        }
+                    }
+                }
+                if (osm.selected != null) {
+                    InkField(draft.newName, { vm.updateReport(draft.copy(newName = it)) }, stringResource(R.string.report_correct_name), required = true)
+                }
+            }
+            else -> Text(stringResource(R.string.osm_edit_use_note), color = c.text, style = MaterialTheme.typography.bodySmall)
+        }
+        // Exactly what will be written to OpenStreetMap.
+        AnimatedVisibility(edit != null) {
+            if (edit != null) OsmPreview(edit)
+        }
+    }
+}
+
+@Composable
+private fun OsmPreview(edit: OsmEdit) {
+    val c = LocalInk.current
+    Column(
+        Modifier.fillMaxWidth().background(if (c.dark) Palette.Graphite else Palette.Sand.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(stringResource(R.string.osm_preview), color = c.text, fontWeight = FontWeight.Bold)
+        // Tags are OSM keys/values: always left-to-right.
+        androidx.compose.runtime.CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                val lines = when (edit) {
+                    is OsmEdit.AddNode -> edit.tags.toSortedMap().map { (k, v) -> "+ $k=$v" }
+                    is OsmEdit.Retag -> edit.changes.map { (k, old, new) ->
+                        when {
+                            old == null -> "+ $k=$new"
+                            new == null -> "- $k=$old"
+                            else -> "~ $k: $old → $new"
+                        }
+                    }
+                }
+                lines.forEach {
+                    Text(it, color = c.text, style = MaterialTheme.typography.bodySmall,
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
+                }
+                Text(edit.comment, color = c.muted, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
 private val PLACE_KIND_LABELS = listOf(
     "school" to R.string.kind_school,
     "pharmacy" to R.string.kind_pharmacy,
@@ -342,6 +532,7 @@ private val PLACE_KIND_LABELS = listOf(
     "clinic" to R.string.kind_clinic,
     "fuel" to R.string.kind_fuel,
     "bakery" to R.string.kind_bakery,
+    "water" to R.string.kind_water,
     "other" to R.string.kind_other,
 )
 
@@ -379,7 +570,7 @@ private fun CheckBox(checked: Boolean) {
 }
 
 @Composable
-private fun SentView(sent: ReportStatus.Sent, onDone: () -> Unit) {
+private fun SentView(sent: ReportStatus.Sent, directEdit: Boolean, onDone: () -> Unit) {
     val c = LocalInk.current
     val uri = LocalUriHandler.current
     val pop = remember { Animatable(0f) }
@@ -397,9 +588,20 @@ private fun SentView(sent: ReportStatus.Sent, onDone: () -> Unit) {
             contentAlignment = Alignment.Center,
         ) { InkIcon(InkGlyph.Check, size = 84.dp, ink = Palette.Ink, fill = Palette.Cream) }
         Text(stringResource(R.string.report_sent_title), style = MaterialTheme.typography.headlineSmall, color = c.text, textAlign = TextAlign.Center)
-        Text(stringResource(R.string.report_sent_text), style = MaterialTheme.typography.bodyMedium, color = c.muted, textAlign = TextAlign.Center)
+        Text(
+            stringResource(
+                when {
+                    directEdit -> R.string.osm_edit_sent_text
+                    sent.community -> R.string.report_sent_team_text
+                    else -> R.string.report_sent_text
+                },
+            ),
+            style = MaterialTheme.typography.bodyMedium, color = c.muted, textAlign = TextAlign.Center,
+        )
         Spacer(Modifier.weight(1f))
-        InkButton(stringResource(R.string.report_view_note), { uri.openUri(sent.url) }, Modifier.fillMaxWidth(), InkGlyph.Navigate, InkButtonStyle.Secondary)
+        sent.url?.let { url ->
+            InkButton(stringResource(if (directEdit) R.string.osm_view_changeset else R.string.report_view_note), { uri.openUri(url) }, Modifier.fillMaxWidth(), InkGlyph.Navigate, InkButtonStyle.Secondary)
+        }
         InkButton(stringResource(R.string.report_done), onDone, Modifier.fillMaxWidth(), InkGlyph.Check)
     }
 }

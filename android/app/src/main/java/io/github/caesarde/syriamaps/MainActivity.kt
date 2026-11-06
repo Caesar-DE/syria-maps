@@ -70,7 +70,14 @@ class MainActivity : ComponentActivity() {
 
     /** A point shared from OsmAnd (or any geo: link) opens the report screen at that place. */
     private fun handleShare(intent: Intent?) {
-        val text = when (intent?.action) {
+        // Reopened from "recent apps": Android replays the original share intent; do not open it again.
+        if (intent == null || intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0) return
+        val data = intent.data
+        if (intent.action == Intent.ACTION_VIEW && data?.scheme == "io.github.caesarde.syriamaps" && data.host == "oauth2") {
+            vm.onOsmRedirect(data)
+            return
+        }
+        val text = when (intent.action) {
             Intent.ACTION_SEND -> intent.getStringExtra(Intent.EXTRA_TEXT)
             Intent.ACTION_VIEW -> intent.dataString
             else -> return

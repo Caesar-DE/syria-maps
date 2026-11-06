@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>خرائط سوريا — الإشراف</title>
+<style>
+  :root {
+    --yellow: #ffd21f; --ink: #141311; --cream: #fff4d6; --sand: #ebd9b4; --muted: #5b4a35;
+    --ok: #3e7b2c; --bad: #a33a17; --ground: var(--yellow); --paper: var(--cream); --text: var(--ink);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ground: #141311; --paper: #1f1d1a; --text: #fff4d6; --muted: #cbbd9c; --ink: #ffd21f; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ground); color: var(--text);
+         font: 16px/1.5 system-ui, "Segoe UI", Tahoma, sans-serif; }
+  main { max-width: 900px; margin: 0 auto; padding: 20px 16px 60px; }
+  h1 { font-size: 30px; margin: 8px 0 4px; font-weight: 900; }
+  .sub { color: var(--muted); margin: 0 0 18px; }
+  .card { background: var(--paper); border: 2px solid var(--ink); border-radius: 18px;
+          box-shadow: -5px 5px 0 var(--ink); padding: 16px; margin: 0 0 18px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  input, select, textarea { font: inherit; color: var(--text); background: transparent; border: 2px solid var(--ink);
+          border-radius: 12px; padding: 8px 10px; min-width: 0; }
+  input[type=password] { flex: 1 1 260px; direction: ltr; }
+  button { font: inherit; font-weight: 700; cursor: pointer; border: 2px solid #141311; border-radius: 12px;
+           padding: 8px 14px; background: #ffd21f; color: #141311; box-shadow: -3px 3px 0 #141311;
+           transition: transform .08s, box-shadow .08s; }
+  button:active { transform: translate(-3px, 3px); box-shadow: 0 0 0 #141311; }
+  button.secondary { background: var(--paper); color: var(--text); border-color: var(--ink); box-shadow: -3px 3px 0 var(--ink); }
+  button.danger { background: #a33a17; color: #fff4d6; }
+  .tabs button[aria-pressed=true] { background: var(--ink); color: var(--ground); }
+  .tag { display: inline-block; border: 1.5px solid var(--ink); border-radius: 99px; padding: 1px 10px; font-size: 13px; }
+  .tag.t-new_place { background: #ffd21f; color: #141311; }
+  .meta { color: var(--muted); font-size: 14px; }
+  .coords { direction: ltr; unicode-bidi: isolate; font-family: ui-monospace, monospace; }
+  dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 10px 0; }
+  dt { color: var(--muted); }
+  dd { margin: 0; white-space: pre-wrap; word-break: break-word; }
+  .edit { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin: 10px 0; }
+  .empty, .error { padding: 18px; text-align: center; }
+  .error { color: var(--bad); font-weight: 700; }
+  a { color: inherit; }
+</style>
+</head>
+<body>
+<main>
+  <h1>الإشراف على المساهمات</h1>
+  <p class="sub">أماكن وتصحيحات أرسلها مستخدمو التطبيق. الأماكن الجديدة المقبولة تظهر في طبقة «أماكن من المجتمع».
+    تصحيحات أسماء الشوارع والأماكن المغلقة صحّحها في OpenStreetMap، ثم اضغط «تمت المعالجة».</p>
+
+  <section class="card">
+    <div class="row">
+      <input id="token" type="password" placeholder="رمز المشرف (SYRIA_MAPS_ADMIN_TOKEN)" autocomplete="off">
+      <button id="login">دخول</button>
+      <button id="logout" class="secondary">خروج</button>
+    </div>
+    <p class="meta">يُحفظ الرمز في هذه النافذة فقط (sessionStorage) ويُحذف عند إغلاقها.</p>
+  </section>
+
+  <div class="row tabs" role="group" aria-label="الحالة">
+    <button data-status="pending" aria-pressed="true">بانتظار المراجعة</button>
+    <button data-status="accepted" class="secondary" aria-pressed="false">مقبولة</button>
+    <button data-status="rejected" class="secondary" aria-pressed="false">مرفوضة</button>
+    <span id="count" class="meta"></span>
+  </div>
+  <div id="list" style="margin-top:18px"></div>
+</main>
+
+<script>
+(() => {
+  const TYPES = { new_place: "مكان جديد", wrong_name: "اسم خاطئ", closed: "مغلق أو غير موجود", other: "مشكلة أخرى" };
+  const KINDS = { school: "مدرسة", pharmacy: "صيدلية", hospital: "مستشفى", clinic: "عيادة", fuel: "محطة وقود",
+                  bakery: "فرن", water: "نقطة مياه", other: "أخرى" };
+  const $ = (s) => document.querySelector(s);
+  let status = "pending";
+
+  const store = {
+    get() { try { return sessionStorage.getItem("sm-admin") || ""; } catch { return ""; } },
+    set(v) { try { v ? sessionStorage.setItem("sm-admin", v) : sessionStorage.removeItem("sm-admin"); } catch {} },
+  };
+
+  async function api(path, opts = {}) {
+    const res = await fetch(path, { ...opts, headers: { "Authorization": "Bearer " + store.get(),
+      "Content-Type": "application/json", ...(opts.headers || {}) } });
+    if (!res.ok) {
+      let msg = res.status + "";
+      try { msg = (await res.json()).detail || msg; } catch {}
+      throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
+    }
+    return res.json();
+  }
+
+  const el = (tag, attrs = {}, ...children) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === "class") n.className = v; else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v);
+    }
+    for (const c of children) if (c != null) n.append(c);   // text nodes: user content is never parsed as HTML
+    return n;
+  };
+
+  function card(s) {
+    const osm = `https://www.openstreetmap.org/?mlat=${s.lat}&mlon=${s.lon}#map=18/${s.lat}/${s.lon}`;
+    const edit = `https://www.openstreetmap.org/edit#map=19/${s.lat}/${s.lon}`;
+    const dl = el("dl", {});
+    const add = (label, value) => { if (value) dl.append(el("dt", {}, label), el("dd", {}, value)); };
+    add("النوع", s.kind ? (KINDS[s.kind] || s.kind) : null);
+    add("الاسم (عربي)", s.name_ar);
+    add("الاسم (إنكليزي)", s.name_en);
+    add("الاسم الحالي على الخريطة", s.current_name);
+    add("تفاصيل", s.details);
+    add("ملاحظة المشرف", s.review_note);
+
+    const box = el("article", { class: "card" },
+      el("div", { class: "row" },
+        el("span", { class: "tag t-" + s.type }, TYPES[s.type] || s.type),
+        el("span", { class: "meta" }, new Date(s.created_at).toLocaleString("ar")),
+        el("a", { href: osm, target: "_blank", rel: "noopener noreferrer", class: "coords" },
+          s.lat.toFixed(5) + ", " + s.lon.toFixed(5))),
+      dl);
+
+    if (s.status === "pending") {
+      const note = el("input", { placeholder: "ملاحظة (اختياري)", maxlength: "500" });
+      let kind, nameAr, nameEn;
+      if (s.type === "new_place") {
+        kind = el("select", {});
+        for (const [k, label] of Object.entries(KINDS)) kind.append(el("option", { value: k }, label));
+        kind.value = s.kind || "other";
+        nameAr = el("input", { placeholder: "الاسم بالعربية", maxlength: "200" }); nameAr.value = s.name_ar || "";
+        nameEn = el("input", { placeholder: "Name (English)", maxlength: "200", dir: "ltr" }); nameEn.value = s.name_en || "";
+        box.append(el("div", { class: "edit" }, kind, nameAr, nameEn));
+      }
+      const acceptLabel = s.type === "new_place" ? "قبول ونشر" : "تمت المعالجة";
+      box.append(el("div", { class: "row" }, note,
+        el("button", { onclick: () => act(s.id, "accept", {
+          note: note.value || null, kind: kind ? kind.value : null,
+          name_ar: nameAr ? nameAr.value || null : null, name_en: nameEn ? nameEn.value || null : null }) }, acceptLabel),
+        el("button", { class: "danger", onclick: () => act(s.id, "reject", { note: note.value || null }) }, "رفض"),
+        s.type !== "new_place" ? el("a", { href: edit, target: "_blank", rel: "noopener noreferrer" }, "تعديل في OSM") : null));
+    }
+    return box;
+  }
+
+  async function act(id, what, body) {
+    try { await api(`/api/v1/moderation/submissions/${encodeURIComponent(id)}/${what}`, { method: "POST", body: JSON.stringify(body) }); load(); }
+    catch (e) { alert(e.message); }
+  }
+
+  async function load() {
+    const list = $("#list");
+    list.replaceChildren();
+    if (!store.get()) { list.append(el("div", { class: "card empty" }, "أدخل رمز المشرف.")); return; }
+    try {
+      const page = await api(`/api/v1/moderation/submissions?status=${status}&limit=200`);
+      $("#count").textContent = page.total + " مساهمة";
+      if (!page.items.length) list.append(el("div", { class: "card empty" }, "لا توجد مساهمات هنا."));
+      for (const s of page.items) list.append(card(s));
+    } catch (e) {
+      list.append(el("div", { class: "card error" }, e.message));
+    }
+  }
+
+  $("#login").addEventListener("click", () => { store.set($("#token").value.trim()); $("#token").value = ""; load(); });
+  $("#logout").addEventListener("click", () => { store.set(""); load(); });
+  document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => {
+    status = b.dataset.status;
+    document.querySelectorAll(".tabs button").forEach((x) => {
+      const on = x === b; x.setAttribute("aria-pressed", on); x.classList.toggle("secondary", !on);
+    });
+    load();
+  }));
+  load();
+})();
+</script>
+</body>
+</html>

@@ -25,7 +25,7 @@ def pg(registry, fixture_data):
     db = PostgisStorage(DSN, max_size=4)
     with db.pool.connection() as conn:
         conn.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
-    assert db.migrate(REPO_ROOT / "database" / "migrations") == ["001_initial.sql"]
+    assert db.migrate(REPO_ROOT / "database" / "migrations") == ["001_initial.sql", "002_submissions.sql"]
     assert db.migrate(REPO_ROOT / "database" / "migrations") == []
     db.sync_layers(registry.all())
     assert db.import_collection(fixture_data).version == 1
@@ -90,3 +90,23 @@ def test_tile_and_versions(pg_client):
     assert pg_client.get("/api/v1/datasets/public-services/version").json()["version"] == 1
     r = pg_client.get("/tiles/public-services/12/2459/1643.png")
     assert r.status_code == 200 and r.headers["content-type"] == "image/png"
+
+
+def test_submission_moderation_roundtrip(pg):
+    from app.datasets import utcnow
+    from app.submissions import COMMUNITY_META, Submission, community_feature
+
+    sub = Submission(id="pgtest1", type="new_place", lat=33.51, lon=36.28, kind="school", name_ar="مدرسة",
+                     name_en=None, current_name=None, details="d", status="pending", created_at=utcnow())
+    pg.add_submission(sub)
+    got = pg.get_submission("pgtest1")
+    assert got.lat == pytest.approx(33.51) and got.lon == pytest.approx(36.28) and got.status == "pending"
+    rows, total = pg.list_submissions("pending", 10, 0)
+    assert total == 1 and rows[0].id == "pgtest1"
+
+    done = pg.review_submission("pgtest1", "accepted", "ok", community_feature(sub, "school", "مدرسة", None), COMMUNITY_META)
+    assert done.status == "accepted" and done.feature_external_id == "sub-pgtest1" and done.reviewed_at is not None
+    feats = pg.iter_layer_features("community-places")
+    assert [f.external_id for f in feats] == ["sub-pgtest1"] and feats[0].name_ar == "مدرسة"
+    assert pg.latest_version("community-places").version == 1
+    assert pg.review_submission("missing", "rejected", None, None, COMMUNITY_META) is None

@@ -42,11 +42,16 @@ android {
 
     buildTypes {
         debug {
-            // Reports from test builds go to the OSM development server, never to the real map.
+            // Reports and edits from test builds go to the OSM development server, never to the real map.
             buildConfigField("String", "OSM_API", "\"https://master.apis.dev.openstreetmap.org\"")
+            buildConfigField("String", "OSM_WEB", "\"https://master.apis.dev.openstreetmap.org\"")
+            buildConfigField("String", "OSM_CLIENT_ID", "\"${project.findProperty("osmDevClientId") ?: ""}\"")
         }
         release {
             buildConfigField("String", "OSM_API", "\"https://api.openstreetmap.org\"")
+            buildConfigField("String", "OSM_WEB", "\"https://www.openstreetmap.org\"")
+            // OAuth2 app registered on openstreetmap.org (public client). Empty = direct editing hidden.
+            buildConfigField("String", "OSM_CLIENT_ID", "\"${project.findProperty("osmClientId") ?: ""}\"")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")

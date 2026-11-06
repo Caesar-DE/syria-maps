@@ -66,6 +66,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -370,7 +371,7 @@ private fun PointLayersCard(state: UiState, vm: MainViewModel) {
         Text(stringResource(R.string.points_explain), style = MaterialTheme.typography.bodySmall, color = c.muted)
         AnimatedContent(
             targetState = when {
-                state.loadingLayers -> 0
+                state.loadingLayers && layers.isEmpty() -> 0  // refreshes keep the list visible
                 state.layersProblem != null -> 1
                 layers.isEmpty() -> 2
                 else -> 3
@@ -470,7 +471,7 @@ private fun PointLayerRow(layer: LayerInfo, enabled: Boolean, sync: LayerSyncSta
                 Text(layer.title(LocalLanguage.current), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = c.text)
                 Text(
                     buildString {
-                        append(stringResource(R.string.layer_points_count, count))
+                        append(pluralStringResource(R.plurals.layer_points_count, count, count))
                         if (layer.synthetic) append(" · ").append(stringResource(R.string.layer_synthetic))
                     },
                     style = MaterialTheme.typography.bodySmall,
@@ -528,7 +529,7 @@ private fun PointLayerRow(layer: LayerInfo, enabled: Boolean, sync: LayerSyncSta
                     )
                     Spacer(Modifier.width(6.dp))
                     Text(
-                        stringResource(R.string.sync_done, s.points),
+                        pluralStringResource(R.plurals.sync_done, s.points, s.points),
                         style = MaterialTheme.typography.bodySmall,
                         color = c.ok,
                         fontWeight = FontWeight.Bold,

@@ -60,6 +60,23 @@ class ApiClient(private val baseUrl: String, private val cacheDir: File) {
         target
     }
 
+    /** Sends a community submission; returns its id. The server publishes it only after moderation. */
+    suspend fun submit(body: org.json.JSONObject): String = withContext(Dispatchers.IO) {
+        val conn = open("$baseUrl/api/v1/submissions").apply {
+            requestMethod = "POST"
+            doOutput = true
+            setRequestProperty("Content-Type", "application/json; charset=utf-8")
+        }
+        try {
+            conn.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
+            val code = conn.responseCode
+            if (code != 201) throw ApiException("HTTP $code", code)
+            org.json.JSONObject(conn.inputStream.bufferedReader().use { it.readText() }).getString("id")
+        } finally {
+            conn.disconnect()
+        }
+    }
+
     private fun get(url: String): Response {
         val conn = open(url)
         val code = conn.responseCode

@@ -54,9 +54,10 @@ def test_package_contents(osf):
     assert plugin["pluginId"] == PLUGIN_ID
     assert plugin["name"]["ar"] == "خرائط سوريا" and plugin["name"][""]
     sources = root["items"][2]["items"]
-    assert [s["name"] for s in sources] == ["Syria Maps - Public services from OpenStreetMap",
+    assert [s["name"] for s in sources] == ["Syria Maps - Community places",
+                                            "Syria Maps - Public services from OpenStreetMap",
                                             "Syria Maps - Public services (synthetic)"]
-    source = sources[1]
+    source = sources[2]
     assert set(source) == set(MAP_SOURCE_KEYS)
     # High-density tiles: the URL and the declared size must match (OsmAnd crops to tileSize).
     assert source["url"] == f"{BASE}/tiles/public-services/{{0}}/{{1}}/{{2}}@2x.png"

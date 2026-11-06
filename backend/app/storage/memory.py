@@ -7,6 +7,8 @@ agree on the same fixture.
 
 from __future__ import annotations
 
+import hashlib
+import json
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
@@ -16,6 +18,7 @@ from shapely.geometry import Point, box, shape
 from app.datasets import checksum, load_json, parse_time, utcnow
 from app.geo import BBox, haversine_m
 from app.storage.base import DatasetVersion, Feature, FeatureQuery, Notice, NoticeQuery
+from app.submissions import Submission
 
 
 class MemoryStorage:
@@ -24,6 +27,7 @@ class MemoryStorage:
         self._shapes: dict[int, Any] = {}
         self._notices: list[Notice] = []
         self._versions: dict[str, list[DatasetVersion]] = {}
+        self._submissions: dict[str, Submission] = {}
         self._next_id = 1
 
     @classmethod
@@ -164,8 +168,61 @@ class MemoryStorage:
     def feature_counts(self) -> dict[str, int]:
         return {k: len(v) for k, v in self._features.items()}
 
+    # -- submissions ------------------------------------------------------
+
+    def add_submission(self, sub: Submission) -> None:
+        self._submissions[sub.id] = sub
+
+    def get_submission(self, submission_id: str) -> Submission | None:
+        return self._submissions.get(submission_id)
+
+    def list_submissions(self, status: str | None, limit: int, offset: int) -> tuple[list[Submission], int]:
+        rows = [s for s in self._submissions.values() if status is None or s.status == status]
+        rows.sort(key=lambda s: s.created_at, reverse=True)
+        return rows[offset : offset + limit], len(rows)
+
+    def review_submission(self, submission_id, status, note, feature, meta):
+        sub = self._submissions.get(submission_id)
+        if sub is None:
+            return None
+        if feature is not None:
+            self._upsert_feature(feature, meta)
+            sub = replace(sub, feature_external_id=str(feature["properties"]["id"]))
+        sub = replace(sub, status=status, review_note=note, reviewed_at=utcnow())
+        self._submissions[submission_id] = sub
+        return sub
+
+    def _upsert_feature(self, feat: dict[str, Any], meta: dict[str, Any]) -> None:
+        layer_id = meta["layer_id"]
+        props = dict(feat.get("properties") or {})
+        external_id = str(props.pop("id"))
+        rows = self._features.setdefault(layer_id, [])
+        rows[:] = [f for f in rows if f.external_id != external_id]
+        fid = self._next_id
+        self._next_id += 1
+        now = utcnow()
+        rows.append(Feature(
+            id=fid, layer_id=layer_id, geometry=feat["geometry"], kind=props.pop("kind", None),
+            name_ar=props.pop("name_ar", None), name_en=props.pop("name_en", None), external_id=external_id,
+            properties=props, source=meta["source"], license=meta["license"], attribution=meta["attribution"],
+            is_synthetic=bool(meta.get("synthetic", False)), updated_at=now,
+        ))
+        self._shapes[fid] = shape(feat["geometry"])
+        versions = self._versions.setdefault(layer_id, [])
+        previous = versions[-1].checksum if versions else ""
+        versions.append(DatasetVersion(
+            layer_id=layer_id, version=len(versions) + 1,
+            checksum=chained_checksum(previous, feat), feature_count=len(rows), created_at=now,
+        ))
+
     def close(self) -> None:
         pass
+
+
+def chained_checksum(previous: str, feature: dict[str, Any]) -> str:
+    """Version checksum for single-feature changes (moderation): previous checksum + the new feature."""
+    body = json.dumps(feature, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()
+    return hashlib.sha256(previous.encode() + body).hexdigest()
 
 
 def is_publishable(n: Notice, now) -> bool:

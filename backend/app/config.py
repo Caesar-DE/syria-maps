@@ -30,6 +30,12 @@ class Settings(BaseSettings):
     # GeoJSON files loaded by the in-memory storage (comma separated).
     memory_fixtures: str = ""
 
+    #: Bearer token for /api/v1/moderation and /moderation. Empty = moderation disabled (submissions are still
+    #: accepted and wait as "pending"). Use a long random value: python -c "import secrets; print(secrets.token_urlsafe(32))"
+    admin_token: str = ""
+    #: Submissions per client address and hour (memory only, address never stored). 0 = unlimited.
+    submissions_per_hour: int = 10
+
     cors_origins: str = "*"
     cache_ttl_seconds: int = 300
     tile_cache_entries: int = 2048

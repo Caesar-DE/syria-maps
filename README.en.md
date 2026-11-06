@@ -30,7 +30,8 @@ public-service points and sourced road notices — inside OsmAnd, which works of
 | 3D buildings | Planned (via OSM data; `.osf` cannot inject 3D geometry) |
 | Real-time traffic | Planned — needs a real provider |
 | Reporting wrong names, missing or closed places as OpenStreetMap notes (Android app) | Implemented, tested on a real phone against the OSM test server |
-| Community submissions with moderation on our own server | Planned |
+| Community submissions with moderation on our own server (`/moderation`, layer `community-places`) | Implemented; tested end to end (phone → moderation page → layer → OsmAnd) with in-memory storage; PostGIS path covered by CI tests |
+| Direct OpenStreetMap editing from the app (OAuth2, add place / rename) | Implemented and unit tested; **login and upload not yet tested on a device** (needs a registered OSM OAuth app) |
 | Android companion app (Kotlin) adding point layers to OsmAnd with one switch | Implemented; tested on a real phone with OsmAnd 5.4.11 (points appear on the map; `.osf` hand-over works) |
 
 ## How it works
@@ -174,6 +175,20 @@ reaches everyone's OsmAnd maps.
   security sites.
 - **For the maintainer:** notes from the app carry `#SyriaMaps`. Review and resolve them on openstreetmap.org
   (map layer "Map Notes"); there are few active mappers in Syria.
+
+### Syria Maps team (moderated)
+
+In the report screen users can pick "Syria Maps team" instead of OpenStreetMap. The contribution goes to your
+server and is published only after a moderator accepts it on `https://your-host/moderation`. Accepted new places
+appear in the "Community places" layer (CC0) in the app and in OsmAnd. No sender name or IP address is stored.
+Setup: [docs/deployment.md](docs/deployment.md) (section 5).
+
+### Edit OpenStreetMap directly from the app
+
+For people with an OSM account: log in with OpenStreetMap (the password is entered only on openstreetmap.org),
+then add a new place or fix the name of a nearby street or place. The app shows exactly what will be written
+before uploading. Needs a one-time OAuth app registration on OSM, see
+[docs/android-companion.md](docs/android-companion.md).
 
 ### Option 1 (for mappers): edit OpenStreetMap directly
 

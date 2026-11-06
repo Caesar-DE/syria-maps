@@ -18,11 +18,9 @@
     <string name="section_points">Point layers</string>
     <string name="points_explain">These points are sent straight to the OsmAnd map. They stay visible while OsmAnd is running and are re-sent automatically when you open this app.</string>
     <string name="sync_now">Sync now</string>
-    <string name="layer_points_count">%1$d points on the server</string>
     <string name="layer_synthetic">Test data</string>
     <string name="sync_off">Off</string>
     <string name="sync_running">Sending to OsmAnd: %1$d of %2$d</string>
-    <string name="sync_done">Shown in OsmAnd: %1$d points</string>
     <string name="no_point_layers">This server has no point layers.</string>
 
     <string name="section_raster">Image layers (raster)</string>
@@ -133,4 +131,44 @@
     <string name="report_notification_text">Tap to open the report in Syria Maps</string>
     <string name="report_osmand_button_title">“Report” button in OsmAnd</string>
     <string name="report_osmand_button_text">Syria Maps points in OsmAnd get a report button. Needs the notification permission, because Android does not let apps open themselves from the background.</string>
+    <string name="report_dest_title">Send to</string>
+    <string name="report_dest_osm">OpenStreetMap</string>
+    <string name="report_dest_osm_sub">Public note for volunteers, reaches the OsmAnd maps</string>
+    <string name="report_dest_team">Syria Maps team</string>
+    <string name="report_dest_team_sub">A moderator reviews it; appears in “Community places”</string>
+    <string name="report_team_notice">Goes to the Syria Maps server and is reviewed by a moderator before publishing. Your name and IP address are not stored. Accepted new places are published under CC0 (free for everyone). Do not enter personal data, and do not report military or security sites.</string>
+    <string name="report_team_confirm">I agree to publish under CC0</string>
+    <string name="report_send_team">Send to the Syria Maps team</string>
+    <string name="report_sent_team_text">A moderator will review it. If the new place is accepted, it appears in the “Community places” layer in the app and in OsmAnd.</string>
+    <string name="report_rate_limited">Too many reports in a short time. Please try again in an hour.</string>
+    <string name="kind_water">Water point</string>
+    <plurals name="layer_points_count">
+        <item quantity="one">%1$d point on the server</item>
+        <item quantity="other">%1$d points on the server</item>
+    </plurals>
+    <plurals name="sync_done">
+        <item quantity="one">Shown in OsmAnd: %1$d point</item>
+        <item quantity="other">Shown in OsmAnd: %1$d points</item>
+    </plurals>
+    <string name="osm_dest_edit">Edit OpenStreetMap directly</string>
+    <string name="osm_dest_edit_sub">With your OSM account: add a place or fix a name right away</string>
+    <string name="osm_login_text">You need a free OpenStreetMap account. You enter the password only on openstreetmap.org; this app never sees it.</string>
+    <string name="osm_login">Log in with OpenStreetMap</string>
+    <string name="osm_logging_in">Waiting for the login in the browser…</string>
+    <string name="osm_login_failed">Login did not complete. Please try again.</string>
+    <string name="osm_login_expired">Your login expired. Please log in again.</string>
+    <string name="osm_logged_in_as">Logged in as: %1$s</string>
+    <string name="osm_logout">Log out</string>
+    <string name="osm_find_nearby">Find nearby streets and places</string>
+    <string name="osm_searching">Searching…</string>
+    <string name="osm_nearby_failed">Could not load nearby OpenStreetMap data.</string>
+    <string name="osm_nearby_empty">No named places or streets near this location.</string>
+    <string name="osm_edit_use_note">For closed places and other problems, please send an OpenStreetMap note so someone checks on the ground before anything is deleted.</string>
+    <string name="osm_preview">Will be written to OpenStreetMap:</string>
+    <string name="osm_edit_notice">The change is public right away, under your OSM account and the ODbL. Only edit what you know on the ground, and never copy from Google Maps or other maps.</string>
+    <string name="osm_edit_confirm">I know this place on the ground</string>
+    <string name="osm_edit_send">Upload to OpenStreetMap</string>
+    <string name="osm_edit_conflict">Someone else just edited this place. Please search again and retry.</string>
+    <string name="osm_edit_sent_text">Your change is live on OpenStreetMap and reaches the OsmAnd maps with the next update.</string>
+    <string name="osm_view_changeset">View the change on OSM</string>
 </resources>

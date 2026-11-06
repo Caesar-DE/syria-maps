@@ -223,7 +223,7 @@ private fun StepHeader(glyph: InkGlyph, title: String, subtitle: String) {
 
 /** A large selectable card: lifts and turns yellow when chosen, with a check that pops in. */
 @Composable
-private fun ChoiceCard(
+internal fun ChoiceCard(
     selected: Boolean,
     onClick: () -> Unit,
     index: Int,
