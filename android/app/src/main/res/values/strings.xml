@@ -61,4 +61,30 @@
     <string name="pill_offline">غير متصل</string>
     <string name="pill_missing">OsmAnd غير مثبت</string>
     <string name="placeholder_server">ضع عنوان خادمك (https) في قسم «الخادم» أدناه.</string>
+
+    <string name="settings">الإعدادات</string>
+    <string name="wizard_skip">تخطي</string>
+    <string name="wizard_back">رجوع</string>
+    <string name="wizard_next">التالي</string>
+    <string name="wizard_finish">لنبدأ</string>
+    <string name="wizard_lang_title">أهلاً بك! اختر لغتك</string>
+    <string name="wizard_lang_sub">يمكنك تغييرها لاحقاً من زر الإعدادات.</string>
+    <string name="wizard_theme_title">المظهر</string>
+    <string name="wizard_theme_sub">فاتح بالأصفر، داكن بالأسود، أو حسب إعداد الهاتف.</string>
+    <string name="theme_light">فاتح</string>
+    <string name="theme_dark">داكن</string>
+    <string name="theme_system">حسب الهاتف</string>
+    <string name="wizard_server_title">الخادم</string>
+    <string name="wizard_server_sub">عنوان خادم «خرائط سوريا» الذي تأتي منه الطبقات.</string>
+    <string name="server_test">اختبار الاتصال</string>
+    <string name="server_testing">جارٍ الاختبار…</string>
+    <string name="server_ok">الخادم يعمل: %1$d طبقة متاحة</string>
+    <string name="server_failed">تعذر الوصول إلى الخادم. تحقق من العنوان والاتصال.</string>
+    <string name="wizard_server_example">العنوان الحالي مثال فقط. ضع عنوان خادمك، أو تابع وغيّره لاحقاً.</string>
+    <string name="wizard_osmand_title">تطبيق OsmAnd</string>
+    <string name="wizard_osmand_sub">خرائط سوريا تضيف الطبقات إلى OsmAnd الرسمي.</string>
+    <string name="wizard_osmand_missing">OsmAnd غير مثبت بعد.</string>
+    <string name="wizard_osmand_enable">مرة واحدة فقط: افتح OsmAnd ← القائمة ← الإضافات (Plugins)، وفعّل «خرائط سوريا» في القائمة. بدون ذلك يرفض OsmAnd عرض النقاط.</string>
+    <string name="wizard_done_title">كل شيء جاهز!</string>
+    <string name="wizard_done_sub">شغّل الطبقات التي تريدها، وستظهر مباشرة على خريطة OsmAnd.</string>
 </resources>

@@ -8,6 +8,7 @@ import io.github.caesarde.syriamaps.data.ApiClient
 import io.github.caesarde.syriamaps.data.Integration
 import io.github.caesarde.syriamaps.data.LayerInfo
 import io.github.caesarde.syriamaps.data.SettingsStore
+import io.github.caesarde.syriamaps.data.ThemeMode
 import io.github.caesarde.syriamaps.osmand.AidlResult
 import io.github.caesarde.syriamaps.osmand.ConnectionState
 import io.github.caesarde.syriamaps.osmand.InstalledOsmAnd
@@ -31,7 +32,7 @@ sealed interface LayerSyncState {
     data class Error(val problem: Problem) : LayerSyncState
 }
 
-/** User-facing problems; the UI maps them to Arabic strings. */
+/** User-facing problems; the UI maps them to localized strings. */
 sealed interface Problem {
     data object ServerUnreachable : Problem
     data class ServerHttp(val code: Int) : Problem
@@ -58,7 +59,18 @@ data class UiState(
     val sync: Map<String, LayerSyncState> = emptyMap(),
     val osfBusy: Boolean = false,
     val notice: Problem? = null,
+    val language: String = "ar",
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val setupDone: Boolean = true,
 )
+
+/** Result of the "test server" button in the setup wizard. */
+sealed interface ServerProbe {
+    data object Idle : ServerProbe
+    data object Running : ServerProbe
+    data class Ok(val layers: Int) : ServerProbe
+    data class Failed(val problem: Problem) : ServerProbe
+}
 
 class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val settings = SettingsStore(app)
@@ -66,7 +78,15 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val layerSync = LayerSync(connection)
     private val syncJobs = mutableMapOf<String, Job>()
 
-    private val _state = MutableStateFlow(UiState(serverUrl = settings.serverUrl, enabled = settings.enabledLayers))
+    private val _state = MutableStateFlow(
+        UiState(
+            serverUrl = settings.serverUrl,
+            enabled = settings.enabledLayers,
+            language = settings.language,
+            themeMode = settings.themeMode,
+            setupDone = settings.setupDone,
+        ),
+    )
     val state: StateFlow<UiState> = _state.asStateFlow()
 
     /** Activities to start (store, OsmAnd, permission screen, .osf import), consumed by MainActivity. */
@@ -119,6 +139,49 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         settings.serverUrl = url
         _state.update { it.copy(serverUrl = settings.serverUrl) }
         loadLayers()
+    }
+
+    fun setLanguage(language: String) {
+        if (language !in SettingsStore.LANGUAGES) return
+        settings.language = language
+        _state.update { it.copy(language = language) }
+    }
+
+    fun setThemeMode(mode: ThemeMode) {
+        settings.themeMode = mode
+        _state.update { it.copy(themeMode = mode) }
+    }
+
+    fun finishSetup() {
+        settings.setupDone = true
+        _state.update { it.copy(setupDone = true) }
+    }
+
+    fun reopenSetup() {
+        _state.update { it.copy(setupDone = false) }
+    }
+
+    private val _probe = MutableStateFlow<ServerProbe>(ServerProbe.Idle)
+    val probe: StateFlow<ServerProbe> = _probe.asStateFlow()
+
+    /** Checks a server URL without saving it: lists its layers. */
+    fun probeServer(url: String) {
+        viewModelScope.launch {
+            _probe.value = ServerProbe.Running
+            _probe.value = try {
+                val base = SettingsStore.normalizeServerUrl(url)
+                ServerProbe.Ok(ApiClient(base, getApplication<Application>().filesDir).layers().size)
+            } catch (e: IOException) {
+                ServerProbe.Failed(e.toProblem())
+            } catch (e: RuntimeException) {
+                // Malformed URL or a reply that is not our API (e.g. an HTML page).
+                ServerProbe.Failed(Problem.ServerUnreachable)
+            }
+        }
+    }
+
+    fun resetProbe() {
+        _probe.value = ServerProbe.Idle
     }
 
     fun loadLayers() {

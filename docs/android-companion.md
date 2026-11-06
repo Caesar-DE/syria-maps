@@ -1,7 +1,23 @@
 # Android companion app
 
-Source: [`android/`](../android). Kotlin + Jetpack Compose, Arabic RTL interface, package
-`io.github.caesarde.syriamaps`, minSdk 26, targetSdk 36.
+Source: [`android/`](../android). Kotlin + Jetpack Compose, package `io.github.caesarde.syriamaps`,
+minSdk 26, targetSdk 36. Interface in Arabic (right-to-left, default), German and English.
+
+## First start and settings
+
+On first start a short setup wizard runs (5 steps, every step skippable):
+
+1. **Language**: Arabic, German or English. The device language is preselected when it is one of the three.
+   The switch is live (no restart); Arabic is laid out right-to-left, German and English left-to-right.
+   Layer titles and category names come from the server in Arabic and English only, so the German
+   interface shows them in English.
+2. **Theme**: light (yellow), dark (black) or follow the phone. Colours morph live.
+3. **Server**: address field with a "test connection" button that lists the server's layers without saving.
+4. **OsmAnd**: shows whether OsmAnd is installed and connected, and how to enable the app in OsmAnd once.
+5. **Done**.
+
+The gear button in the header reopens the wizard later. Choices are stored in the app's
+SharedPreferences (`language`, `theme`, `setup_done`).
 
 The app replaces the manual steps (import `.osf`, enable plugins, pick overlays) for point layers:
 the user turns a switch on, and the points appear in the official OsmAnd app.

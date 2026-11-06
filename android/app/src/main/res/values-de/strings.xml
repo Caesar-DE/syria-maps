@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Syria Maps</string>
+
+    <string name="section_osmand">OsmAnd-App</string>
+    <string name="osmand_not_installed">OsmAnd ist nicht installiert. Diese App arbeitet mit dem offiziellen OsmAnd und funktioniert nicht ohne.</string>
+    <string name="osmand_installed">%1$s – Version %2$s</string>
+    <string name="install_osmand">OsmAnd bei Google Play installieren</string>
+    <string name="open_osmand">In OsmAnd öffnen</string>
+    <string name="grant_permission">Syria Maps in OsmAnd erlauben</string>
+    <string name="state_connecting">Verbinde mit OsmAnd…</string>
+    <string name="state_connected">Mit OsmAnd verbunden</string>
+    <string name="state_disconnected">Verbindung zu OsmAnd getrennt (vielleicht wurde die App geschlossen). Tippe auf „Jetzt synchronisieren“, um neu zu verbinden.</string>
+    <string name="state_unsupported">Die installierte OsmAnd-Version unterstützt die Schnittstelle (AIDL) nicht. Aktualisiere OsmAnd bei Google Play.</string>
+    <string name="state_idle">Nicht verbunden</string>
+    <string name="choose_osmand">Verwendete OsmAnd-Version</string>
+
+    <string name="section_points">Punkt-Ebenen</string>
+    <string name="points_explain">Diese Punkte werden direkt an die OsmAnd-Karte gesendet. Sie bleiben sichtbar, solange OsmAnd läuft, und werden beim Öffnen dieser App automatisch erneut gesendet.</string>
+    <string name="sync_now">Jetzt synchronisieren</string>
+    <string name="layer_points_count">%1$d Punkte auf dem Server</string>
+    <string name="layer_synthetic">Testdaten</string>
+    <string name="sync_off">Aus</string>
+    <string name="sync_running">Sende an OsmAnd: %1$d von %2$d</string>
+    <string name="sync_done">In OsmAnd sichtbar: %1$d Punkte</string>
+    <string name="no_point_layers">Auf diesem Server gibt es keine Punkt-Ebenen.</string>
+
+    <string name="section_raster">Bild-Ebenen (Raster)</string>
+    <string name="raster_explain">Bild-Ebenen kommen nur über das Einstellungspaket (.osf) in OsmAnd, weil die Schnittstelle keine Overlay-Auswahl erlaubt. Nach dem Import: Karte konfigurieren → Overlay-Karte, dann die Ebene wählen. Das Plugin „Online-Karten“ muss in OsmAnd aktiv sein.</string>
+    <string name="install_osf">Kartenpaket in OsmAnd installieren</string>
+    <string name="osf_downloading">Lade Paket herunter…</string>
+    <string name="osf_consent">OsmAnd zeigt den Import-Bildschirm, damit du selbst bestätigst.</string>
+
+    <string name="section_other">Weitere Ebenen</string>
+    <string name="other_explain">Straßen, Namen und 3D-Gebäude kommen aus den OsmAnd-Karten selbst (lade die Syrien-Karte in OsmAnd herunter). Geprüfte Verkehrs- und Sicherheitshinweise werden in der App noch nicht angezeigt.</string>
+    <string name="integration_planned">Geplant</string>
+    <string name="integration_notices">Geprüfte Hinweise – später</string>
+    <string name="integration_vector">Aus OsmAnd-Karten</string>
+
+    <string name="section_server">Server</string>
+    <string name="server_url">Server-Adresse</string>
+    <string name="save">Speichern</string>
+    <string name="retry">Erneut versuchen</string>
+    <string name="loading_layers">Lade Ebenen…</string>
+    <string name="ok">OK</string>
+
+    <string name="problem_server_unreachable">Server nicht erreichbar. Prüfe die Internetverbindung und die Server-Adresse.</string>
+    <string name="problem_server_http">Der Server hat einen Fehler gemeldet (HTTP %1$d).</string>
+    <string name="problem_osmand_not_installed">OsmAnd ist nicht installiert.</string>
+    <string name="problem_osmand_not_connected">Keine Verbindung zu OsmAnd. Öffne OsmAnd einmal und tippe dann auf „Jetzt synchronisieren“.</string>
+    <string name="problem_osmand_unsupported">Diese OsmAnd-Version unterstützt die Funktion nicht. Aktualisiere OsmAnd.</string>
+    <string name="problem_permission">OsmAnd hat die Anfrage abgelehnt, weil Syria Maps dort noch nicht aktiviert ist. Tippe auf „Erlauben“ oder öffne OsmAnd: Menü → Plugins und schalte „Syria Maps“ in der Liste ein.</string>
+    <string name="problem_aidl">Die Anfrage %1$s ist in OsmAnd fehlgeschlagen.</string>
+    <string name="problem_osf_download">Das Paket konnte nicht vom Server geladen werden.</string>
+    <string name="problem_permission_screen_missing">Diese OsmAnd-Version hat keinen Erlaubnis-Bildschirm. Aktiviere Syria Maps von Hand: OsmAnd öffnen → Menü → Plugins, „Syria Maps“ in der Liste einschalten und hierher zurückkehren.</string>
+    <string name="hero_subtitle">Syrische Ebenen direkt auf der OsmAnd-Karte</string>
+    <string name="hero_points">Punkte auf der Karte</string>
+    <string name="hero_layers">Ebenen aktiv</string>
+    <string name="pill_connected">Mit OsmAnd verbunden</string>
+    <string name="pill_connecting">Verbinde…</string>
+    <string name="pill_offline">Nicht verbunden</string>
+    <string name="pill_missing">OsmAnd fehlt</string>
+    <string name="placeholder_server">Trage unten im Bereich „Server“ deine Server-Adresse (https) ein.</string>
+
+    <string name="settings">Einstellungen</string>
+    <string name="wizard_skip">Überspringen</string>
+    <string name="wizard_back">Zurück</string>
+    <string name="wizard_next">Weiter</string>
+    <string name="wizard_finish">Los geht’s</string>
+    <string name="wizard_lang_title">Willkommen! Wähle deine Sprache</string>
+    <string name="wizard_lang_sub">Du kannst sie später über das Zahnrad ändern.</string>
+    <string name="wizard_theme_title">Design</string>
+    <string name="wizard_theme_sub">Hell in Gelb, dunkel in Schwarz oder wie das Telefon eingestellt ist.</string>
+    <string name="theme_light">Hell</string>
+    <string name="theme_dark">Dunkel</string>
+    <string name="theme_system">Wie das Telefon</string>
+    <string name="wizard_server_title">Server</string>
+    <string name="wizard_server_sub">Die Adresse des Syria-Maps-Servers, von dem die Ebenen kommen.</string>
+    <string name="server_test">Verbindung testen</string>
+    <string name="server_testing">Teste…</string>
+    <string name="server_ok">Server läuft: %1$d Ebenen verfügbar</string>
+    <string name="server_failed">Server nicht erreichbar. Prüfe Adresse und Verbindung.</string>
+    <string name="wizard_server_example">Die aktuelle Adresse ist nur ein Beispiel. Trage deinen Server ein oder ändere sie später.</string>
+    <string name="wizard_osmand_title">OsmAnd-App</string>
+    <string name="wizard_osmand_sub">Syria Maps fügt die Ebenen zum offiziellen OsmAnd hinzu.</string>
+    <string name="wizard_osmand_missing">OsmAnd ist noch nicht installiert.</string>
+    <string name="wizard_osmand_enable">Nur einmal nötig: OsmAnd öffnen → Menü → Plugins und „Syria Maps“ in der Liste einschalten. Sonst lehnt OsmAnd die Punkte ab.</string>
+    <string name="wizard_done_title">Alles bereit!</string>
+    <string name="wizard_done_sub">Schalte die gewünschten Ebenen ein – sie erscheinen sofort auf der OsmAnd-Karte.</string>
+</resources>

@@ -34,7 +34,13 @@ data class LayerInfo(
     val alsoRaster: Boolean get() = tiles && osfMapSource && status != "planned"
 }
 
-data class KindStyle(val color: Int, val labelAr: String, val labelEn: String)
+data class KindStyle(val color: Int, val labelAr: String, val labelEn: String) {
+    /** The server only provides Arabic and English labels; German falls back to English. */
+    fun label(language: String): String = if (language == "ar") labelAr else labelEn.ifBlank { labelAr }
+}
+
+/** Layer title in the UI language (server provides ar/en; German uses English). */
+fun LayerInfo.title(language: String): String = if (language == "ar") titleAr else titleEn.ifBlank { titleAr }
 
 enum class Integration {
     /** Points pushed into OsmAnd at runtime via the AIDL map-layer API. */

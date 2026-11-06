@@ -1,5 +1,7 @@
 package io.github.caesarde.syriamaps.ui
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -18,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.caesarde.syriamaps.data.ThemeMode
 
 /*
  * "Ink on yellow" palette: a saturated yellow ground, black ink lines, warm cream paper and a
@@ -86,6 +89,9 @@ private val DarkInk = InkColors(
 
 val LocalInk = staticCompositionLocalOf { LightInk }
 
+/** UI language code ("ar", "de", "en") for data that comes from the server in ar/en. */
+val LocalLanguage = staticCompositionLocalOf { "ar" }
+
 private val InkTypography = Typography().let { base ->
     base.copy(
         displaySmall = base.displaySmall.copy(fontWeight = FontWeight.Black),
@@ -98,10 +104,39 @@ private val InkTypography = Typography().let { base ->
     )
 }
 
+/** Cross-fades every palette colour, so switching light/dark in the wizard morphs smoothly. */
 @Composable
-fun SyriaMapsTheme(content: @Composable () -> Unit) {
-    val dark = isSystemInDarkTheme()
-    val ink = if (dark) DarkInk else LightInk
+private fun animated(target: InkColors): InkColors {
+    val spec = tween<Color>(550)
+    @Composable fun a(c: Color, label: String) = animateColorAsState(c, spec, label = label).value
+    return InkColors(
+        ground = a(target.ground, "ground"),
+        paper = a(target.paper, "paper"),
+        ink = a(target.ink, "ink"),
+        text = a(target.text, "text"),
+        accent = a(target.accent, "accent"),
+        onAccent = a(target.onAccent, "onAccent"),
+        muted = a(target.muted, "muted"),
+        ok = a(target.ok, "ok"),
+        bad = a(target.bad, "bad"),
+        scribble = a(target.scribble, "scribble"),
+        shadow = a(target.shadow, "shadow"),
+        dark = target.dark,
+    )
+}
+
+@Composable
+fun SyriaMapsTheme(
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
+    language: String = "ar",
+    content: @Composable () -> Unit,
+) {
+    val dark = when (themeMode) {
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+    }
+    val ink = animated(if (dark) DarkInk else LightInk)
     val scheme = if (dark) {
         darkColorScheme(
             primary = Palette.Yellow, onPrimary = Palette.Ink,
@@ -130,10 +165,11 @@ fun SyriaMapsTheme(content: @Composable () -> Unit) {
             large = RoundedCornerShape(22.dp),
         ),
     ) {
-        // The interface is Arabic-first: always right-to-left, independent of the device language.
+        // Arabic is right-to-left, German and English left-to-right, independent of the device language.
         CompositionLocalProvider(
-            LocalLayoutDirection provides LayoutDirection.Rtl,
+            LocalLayoutDirection provides if (language == "ar") LayoutDirection.Rtl else LayoutDirection.Ltr,
             LocalInk provides ink,
+            LocalLanguage provides language,
             content = content,
         )
     }

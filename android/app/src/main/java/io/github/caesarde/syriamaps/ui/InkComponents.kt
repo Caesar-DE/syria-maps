@@ -167,6 +167,7 @@ fun InkButton(
     style: InkButtonStyle = InkButtonStyle.Primary,
     enabled: Boolean = true,
     iconRotation: Float = 0f,
+    mirrorIcon: Boolean = false,
 ) {
     val c = LocalInk.current
     val source = remember { MutableInteractionSource() }
@@ -176,10 +177,20 @@ fun InkButton(
         spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
         label = "sink",
     )
-    val face = if (style == InkButtonStyle.Primary) Palette.Yellow else c.paper
-    val label = if (style == InkButtonStyle.Primary) Palette.Ink else c.text
-    val border = if (style == InkButtonStyle.Primary) Palette.Ink else c.ink
-    val shadow = c.shadow
+    // Primary: yellow on the dark theme, black ink on the yellow (light) theme, so it never blends in.
+    val primary = style == InkButtonStyle.Primary
+    val face = when {
+        primary && c.dark -> Palette.Yellow
+        primary -> Palette.Ink
+        else -> c.paper
+    }
+    val label = when {
+        primary && c.dark -> Palette.Ink
+        primary -> Palette.Yellow
+        else -> c.text
+    }
+    val border = if (primary) Palette.Ink else c.ink
+    val shadow = if (primary && !c.dark) Palette.Brown else c.shadow
     val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val alphaTarget by animateFloatAsState(if (enabled) 1f else 0.45f, tween(250), label = "enabled")
     Box(
@@ -206,17 +217,35 @@ fun InkButton(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (glyph != null) {
-                InkIcon(
-                    glyph,
-                    size = 22.dp,
-                    ink = label,
-                    fill = if (style == InkButtonStyle.Primary) Palette.Cream else Palette.Yellow,
-                    modifier = Modifier.graphicsLayer { rotationZ = iconRotation },
-                )
+            val icon: @Composable () -> Unit = {
+                if (glyph != null) {
+                    InkIcon(
+                        glyph,
+                        size = 22.dp,
+                        ink = label,
+                        fill = when {
+                            primary && c.dark -> Palette.Cream
+                            primary -> Palette.Graphite
+                            else -> Palette.Yellow
+                        },
+                        modifier = Modifier.graphicsLayer {
+                            rotationZ = iconRotation
+                            if (mirrorIcon) scaleX = -1f
+                        },
+                    )
+                }
+            }
+            // "Next" arrows sit after the text, every other icon before it.
+            val trailing = glyph == InkGlyph.Arrow
+            if (glyph != null && !trailing) {
+                icon()
                 Spacer(Modifier.width(10.dp))
             }
             Text(text, color = label, style = MaterialTheme.typography.labelLarge, textAlign = TextAlign.Center)
+            if (glyph != null && trailing) {
+                Spacer(Modifier.width(10.dp))
+                icon()
+            }
         }
     }
 }

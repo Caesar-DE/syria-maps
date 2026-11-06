@@ -196,10 +196,12 @@ Adding places directly to our server from the app or website, with moderator rev
 
 ## Android companion app (the easy way)
 
-Instead of importing the package and picking layers by hand, there is a simple Arabic Android app in `android/`:
+Instead of importing the package and picking layers by hand, there is a simple Android app in `android/`
+(Arabic, German and English):
 
 1. Install OsmAnd, then the "Syria Maps" app (`app-release.apk`).
-2. Open it and enter your server URL in the "Server" section if it is not preset.
+2. On first start a short setup asks for language, theme (light or dark) and your server URL, and checks
+   OsmAnd. The gear button opens it again later.
 3. Turn on the switch next to a layer; the points are sent straight to the OsmAnd map.
 4. Tap "Open in OsmAnd".
 

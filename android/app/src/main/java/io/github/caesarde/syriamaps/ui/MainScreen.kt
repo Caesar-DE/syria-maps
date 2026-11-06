@@ -69,6 +69,10 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import kotlinx.coroutines.launch
 import io.github.caesarde.syriamaps.BuildConfig
 import io.github.caesarde.syriamaps.LayerSyncState
 import io.github.caesarde.syriamaps.MainViewModel
@@ -77,6 +81,7 @@ import io.github.caesarde.syriamaps.R
 import io.github.caesarde.syriamaps.UiState
 import io.github.caesarde.syriamaps.data.Integration
 import io.github.caesarde.syriamaps.data.LayerInfo
+import io.github.caesarde.syriamaps.data.title
 import io.github.caesarde.syriamaps.osmand.ConnectionState
 
 @Composable
@@ -98,7 +103,7 @@ fun MainScreen(state: UiState, vm: MainViewModel) {
                 .padding(horizontal = 18.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(22.dp),
         ) {
-            Hero(state)
+            Hero(state, vm::reopenSetup)
             Appear(1) { OsmAndCard(state, vm) }
             Appear(2) { PointLayersCard(state, vm) }
             // Only wrap cards that have content, otherwise the empty slot still adds list spacing.
@@ -129,7 +134,7 @@ fun MainScreen(state: UiState, vm: MainViewModel) {
 /* ---------- Header ---------- */
 
 @Composable
-private fun Hero(state: UiState) {
+private fun Hero(state: UiState, onSettings: () -> Unit) {
     val c = LocalInk.current
     val totalPoints = state.sync.values.sumOf { (it as? LayerSyncState.Synced)?.points ?: 0 }
     val activeLayers = state.enabled.size
@@ -196,7 +201,7 @@ private fun Hero(state: UiState) {
             }
         }
         Row(
-            Modifier.graphicsLayer { alpha = enter.value },
+            Modifier.fillMaxWidth().graphicsLayer { alpha = enter.value },
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -213,11 +218,33 @@ private fun Hero(state: UiState) {
                 },
                 label = "pill",
             ) { (l, col, p) -> StatusPill(l, col, p) }
+            Spacer(Modifier.weight(1f))
+            SettingsButton(onSettings)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             StatTile(totalPoints, stringResource(R.string.hero_points), InkGlyph.Spark, Modifier.weight(1f))
             StatTile(activeLayers, stringResource(R.string.hero_layers), InkGlyph.Layers, Modifier.weight(1f))
         }
+    }
+}
+
+/** Round gear badge: spins a quarter turn with a spring when pressed, then opens the setup wizard. */
+@Composable
+private fun SettingsButton(onClick: () -> Unit) {
+    val spin = remember { Animatable(0f) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val label = stringResource(R.string.settings)
+    Box(
+        Modifier
+            .semantics { contentDescription = label }
+            .clickable(remember { MutableInteractionSource() }, null, role = Role.Button) {
+                scope.launch {
+                    spin.animateTo(spin.value + 120f, spring(dampingRatio = 0.45f, stiffness = Spring.StiffnessMediumLow))
+                    onClick()
+                }
+            },
+    ) {
+        IconBadge(InkGlyph.Gear, size = 46.dp, modifier = Modifier.graphicsLayer { rotationZ = spin.value })
     }
 }
 
@@ -421,7 +448,7 @@ private fun PointLayerRow(layer: LayerInfo, enabled: Boolean, sync: LayerSyncSta
             }
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
-                Text(layer.titleAr, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = c.text)
+                Text(layer.title(LocalLanguage.current), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = c.text)
                 Text(
                     buildString {
                         append(stringResource(R.string.layer_points_count, count))
@@ -452,7 +479,7 @@ private fun PointLayerRow(layer: LayerInfo, enabled: Boolean, sync: LayerSyncSta
                     ) {
                         Box(Modifier.size(8.dp).background(Color(kind.color), CircleShape).border(1.dp, Palette.Ink, CircleShape))
                         Spacer(Modifier.width(5.dp))
-                        Text(kind.labelAr, style = MaterialTheme.typography.labelSmall, color = c.text)
+                        Text(kind.label(LocalLanguage.current), style = MaterialTheme.typography.labelSmall, color = c.text)
                     }
                 }
             }
@@ -543,7 +570,7 @@ private fun RasterCard(state: UiState, vm: MainViewModel) {
     if (raster.isEmpty()) return
     InkCard(stringResource(R.string.section_raster), InkGlyph.Raster) {
         Text(stringResource(R.string.raster_explain), style = MaterialTheme.typography.bodySmall, color = c.muted)
-        raster.forEach { BulletLine(it.titleAr, InkGlyph.Raster) }
+        raster.forEach { BulletLine(it.title(LocalLanguage.current), InkGlyph.Raster) }
         InkButton(
             stringResource(if (state.osfBusy) R.string.osf_downloading else R.string.install_osf),
             vm::installOsf,
@@ -597,7 +624,7 @@ private fun OtherLayersCard(state: UiState) {
                 layer.category == "base" || layer.category == "buildings" -> stringResource(R.string.integration_vector) to InkGlyph.Cube
                 else -> stringResource(R.string.integration_planned) to InkGlyph.Spark
             }
-            BulletLine(layer.titleAr, glyph, tag)
+            BulletLine(layer.title(LocalLanguage.current), glyph, tag)
         }
     }
 }

@@ -3,7 +3,7 @@ package io.github.caesarde.syriamaps.data
 import android.content.Context
 import io.github.caesarde.syriamaps.BuildConfig
 
-/** Small persisted settings: server URL, enabled point layers, chosen OsmAnd package. */
+/** Small persisted settings: server URL, enabled point layers, chosen OsmAnd package, language, theme, setup state. */
 class SettingsStore(context: Context) {
     private val prefs = context.getSharedPreferences("syria_maps", Context.MODE_PRIVATE)
 
@@ -19,10 +19,30 @@ class SettingsStore(context: Context) {
         get() = prefs.getString(KEY_PACKAGE, null)
         set(value) = prefs.edit().putString(KEY_PACKAGE, value).apply()
 
+    /** "ar", "de" or "en". First run: the device language if supported, else Arabic. */
+    var language: String
+        get() = prefs.getString(KEY_LANGUAGE, null) ?: defaultLanguage()
+        set(value) = prefs.edit().putString(KEY_LANGUAGE, value).apply()
+
+    var themeMode: ThemeMode
+        get() = runCatching { ThemeMode.valueOf(prefs.getString(KEY_THEME, null) ?: "") }.getOrDefault(ThemeMode.SYSTEM)
+        set(value) = prefs.edit().putString(KEY_THEME, value.name).apply()
+
+    var setupDone: Boolean
+        get() = prefs.getBoolean(KEY_SETUP_DONE, false)
+        set(value) = prefs.edit().putBoolean(KEY_SETUP_DONE, value).apply()
+
     companion object {
+        val LANGUAGES = listOf("ar", "de", "en")
+        private const val KEY_LANGUAGE = "language"
+        private const val KEY_THEME = "theme"
+        private const val KEY_SETUP_DONE = "setup_done"
         private const val KEY_SERVER = "server_url"
         private const val KEY_ENABLED = "enabled_layers"
         private const val KEY_PACKAGE = "osmand_package"
+
+        fun defaultLanguage(): String =
+            java.util.Locale.getDefault().language.takeIf { it in LANGUAGES } ?: "ar"
 
         fun normalizeServerUrl(raw: String): String {
             val trimmed = raw.trim().trimEnd('/')
@@ -30,3 +50,5 @@ class SettingsStore(context: Context) {
         }
     }
 }
+
+enum class ThemeMode { SYSTEM, LIGHT, DARK }
