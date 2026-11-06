@@ -22,6 +22,24 @@ SharedPreferences (`language`, `theme`, `setup_done`).
 The app replaces the manual steps (import `.osf`, enable plugins, pick overlays) for point layers:
 the user turns a switch on, and the points appear in the official OsmAnd app.
 
+## Reporting map problems (OSM notes)
+
+Users report a wrong name, a missing place, a closed place or another problem. The app creates an anonymous,
+public note with the documented OSM API 0.6 call `POST /api/0.6/notes` (`lat`, `lon`, `text`). The text is
+bilingual (English labels + Arabic) and ends with `#SyriaMaps`. Debug builds send to the OSM development server
+(`master.apis.dev.openstreetmap.org`, shown with a yellow "test build" tag); release builds to `api.openstreetmap.org`.
+
+Where the location comes from:
+
+| Source | How |
+|---|---|
+| OsmAnd "Share" | `ACTION_SEND text/plain`; OsmAnd's ShareMenu text contains `geo:lat,lon` and `https://osmand.net/map?pin=lat,lon`. Also `geo:` VIEW links, osm.org and Google Maps links |
+| Our points in OsmAnd | Optional context-menu button (`addContextMenuButtons`, callback `onContextMenuButtonClicked`). OsmAnd shows it for points whose layer id matches (`AMapPointMenuController`). Android blocks starting an activity from the background (`BAL_BLOCK` on Android 17), so the callback posts a notification; tapping it opens the prepared report. Off by default; turning it on asks for `POST_NOTIFICATIONS` |
+| Phone location | One fix via `LocationManager.getCurrentLocation`, only after the user taps the button; no tracking |
+
+Privacy: the screen states that notes are public and requires confirming that before sending. Nothing about
+the user is stored or sent besides the note itself.
+
 ## How it talks to OsmAnd
 
 Everything below was read from the OsmAnd source at commit `32a03a67` (2026-11-05). No AIDL method was
@@ -149,7 +167,9 @@ must stay available. No OsmAnd artwork (CC-BY-NC-ND) is used.
 | Check | Status |
 |---|---|
 | Compiles against the vendored OsmAnd AIDL interface | Done |
-| Unit tests (JSON parsing, point mapping, chunking) | Done (8 tests) |
+| Unit tests (JSON parsing, point mapping, chunking, location parsing, note text) | Done (15 tests) |
 | Signed release APK + AAB, lint without errors | Done |
 | Binding, layer display and permission flow on a real device with OsmAnd | Verified 2026-11-06: Galaxy Z Fold7, Android 17, OsmAnd 5.4.11 (`net.osmand`). Bind OK; first call refused until the app was enabled in *Plugins*; then remove/add/updateMapLayer accepted and 48 synthetic points shown around Damascus |
-| `.osf` hand-over via ACTION_VIEW on a real device | **Not yet verified** |
+| `.osf` hand-over via ACTION_VIEW on a real device | Verified 2026-11-06 (Fold7, OsmAnd 5.4.11): OsmAnd shows its own import dialog; after import OsmAnd must be restarted to load the new tile source |
+| Report: shared OsmAnd point → note | Verified 2026-11-06 on the OSM dev server (note 401778, correct position and text) |
+| Report: button on our points in OsmAnd | Verified 2026-11-06: button shown, callback received, direct start blocked by Android (`BAL_BLOCK`), notification opens the prefilled report |

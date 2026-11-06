@@ -1,12 +1,25 @@
 package io.github.caesarde.syriamaps
 
+import android.annotation.SuppressLint
 import android.app.Application
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.res.Configuration
+import android.location.Location
+import android.location.LocationManager
+import android.os.Build
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.caesarde.syriamaps.data.ApiClient
 import io.github.caesarde.syriamaps.data.Integration
 import io.github.caesarde.syriamaps.data.LayerInfo
+import io.github.caesarde.syriamaps.data.NoteText
+import io.github.caesarde.syriamaps.data.OsmNotesClient
+import io.github.caesarde.syriamaps.data.PointFeature
+import io.github.caesarde.syriamaps.data.ReportDraft
+import io.github.caesarde.syriamaps.data.ReportLocation
 import io.github.caesarde.syriamaps.data.SettingsStore
 import io.github.caesarde.syriamaps.data.ThemeMode
 import io.github.caesarde.syriamaps.osmand.AidlResult
@@ -16,8 +29,12 @@ import io.github.caesarde.syriamaps.osmand.LayerSync
 import io.github.caesarde.syriamaps.osmand.OsfInstaller
 import io.github.caesarde.syriamaps.osmand.OsmAndApps
 import io.github.caesarde.syriamaps.osmand.OsmAndConnection
+import io.github.caesarde.syriamaps.osmand.PointMapping
+import io.github.caesarde.syriamaps.osmand.ReportButton
 import io.github.caesarde.syriamaps.osmand.SyncOutcome
 import java.io.IOException
+import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -62,7 +79,23 @@ data class UiState(
     val language: String = "ar",
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val setupDone: Boolean = true,
+    /** Non-null while the report screen is open. */
+    val report: ReportDraft? = null,
+    val reportStatus: ReportStatus = ReportStatus.Editing,
+    /** True when the report was opened from another app (share / OsmAnd button): close returns there. */
+    val reportFromOutside: Boolean = false,
+    val osmandReportButton: Boolean = false,
 )
+
+/** Sending state of the report screen. */
+sealed interface ReportStatus {
+    data object Editing : ReportStatus
+    data object Sending : ReportStatus
+    data class Sent(val noteId: Long, val url: String) : ReportStatus
+    data object Failed : ReportStatus
+    data object Locating : ReportStatus
+    data object NoLocationFix : ReportStatus
+}
 
 /** Result of the "test server" button in the setup wizard. */
 sealed interface ServerProbe {
@@ -78,6 +111,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val layerSync = LayerSync(connection)
     private val syncJobs = mutableMapOf<String, Job>()
 
+    /** Last synced points per OsmAnd layer id, to resolve "report" clicks in OsmAnd's context menu. */
+    private val syncedPoints = ConcurrentHashMap<String, Map<String, PointFeature>>()
+    private val reportButton = ReportButton(connection, app.packageName) { layerId, pointId ->
+        viewModelScope.launch { onOsmAndPointReport(layerId, pointId) }
+    }
+    private val notes = OsmNotesClient(BuildConfig.OSM_API)
+
     private val _state = MutableStateFlow(
         UiState(
             serverUrl = settings.serverUrl,
@@ -85,6 +125,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             language = settings.language,
             themeMode = settings.themeMode,
             setupDone = settings.setupDone,
+            osmandReportButton = settings.osmandReportButton,
         ),
     )
     val state: StateFlow<UiState> = _state.asStateFlow()
@@ -238,6 +279,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val outcome = layerSync.sync(layer, features) { sent, total ->
                 setSync(layer.id, LayerSyncState.Syncing(sent, total))
             }
+            if (outcome is SyncOutcome.Done) {
+                val osmandId = PointMapping.osmandLayerId(layer)
+                syncedPoints[osmandId] = features.associateBy { it.id }
+                // Optional extra; a failure here must not mark the layer as failed.
+                if (settings.osmandReportButton) reportButton.add(osmandId, localizedString(R.string.report_button_osmand))
+            }
             setSync(layer.id, when (outcome) {
                 is SyncOutcome.Done -> LayerSyncState.Synced(outcome.points, System.currentTimeMillis())
                 is SyncOutcome.Rejected -> LayerSyncState.Error(Problem.PermissionDenied)
@@ -295,6 +342,103 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun intentFailed(intent: Intent) {
         _intents.value = if (intent.data?.scheme == "market") OsmAndApps.storeWebIntent() else null
         if (intent.data?.scheme != "market") showNotice(Problem.OsmAndNotInstalled)
+    }
+
+    /* ---------- Reports (OSM notes) ---------- */
+
+    fun openReport(location: ReportLocation? = null, currentName: String = "", fromOutside: Boolean = false) {
+        _state.update {
+            it.copy(
+                report = ReportDraft(location = location, currentName = currentName),
+                reportStatus = ReportStatus.Editing,
+                reportFromOutside = fromOutside,
+            )
+        }
+    }
+
+    fun updateReport(draft: ReportDraft) = _state.update {
+        val keep = it.reportStatus is ReportStatus.Sending || it.reportStatus is ReportStatus.Locating
+        it.copy(report = draft, reportStatus = if (keep) it.reportStatus else ReportStatus.Editing)
+    }
+
+    fun closeReport() = _state.update { it.copy(report = null, reportStatus = ReportStatus.Editing, reportFromOutside = false) }
+
+    fun submitReport() {
+        val draft = _state.value.report ?: return
+        val loc = draft.location ?: return
+        val text = NoteText.build(draft) ?: return
+        if (_state.value.reportStatus is ReportStatus.Sending) return
+        viewModelScope.launch {
+            _state.update { it.copy(reportStatus = ReportStatus.Sending) }
+            val status = try {
+                val id = notes.create(loc.latitude, loc.longitude, text)
+                ReportStatus.Sent(id, notes.noteUrl(id))
+            } catch (_: IOException) {
+                ReportStatus.Failed
+            } catch (_: org.json.JSONException) {
+                ReportStatus.Failed
+            }
+            _state.update { it.copy(reportStatus = status) }
+        }
+    }
+
+    /** Called after the location permission was granted. Uses one fresh fix, never tracks. */
+    @SuppressLint("MissingPermission")
+    fun useDeviceLocation() {
+        val ctx = getApplication<Application>()
+        val granted = listOf(android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION)
+            .any { ContextCompat.checkSelfPermission(ctx, it) == PackageManager.PERMISSION_GRANTED }
+        if (!granted) return
+        val lm = ctx.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val provider = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
+            .firstOrNull { runCatching { lm.isProviderEnabled(it) }.getOrDefault(false) }
+        _state.update { it.copy(reportStatus = ReportStatus.Locating) }
+        val deliver: (Location?) -> Unit = { loc ->
+            _state.update { s ->
+                val draft = s.report
+                when {
+                    draft == null -> s
+                    loc == null -> s.copy(reportStatus = ReportStatus.NoLocationFix)
+                    else -> s.copy(
+                        report = draft.copy(location = ReportLocation(loc.latitude, loc.longitude, ReportLocation.Source.DEVICE_GPS)),
+                        reportStatus = ReportStatus.Editing,
+                    )
+                }
+            }
+        }
+        if (provider == null) return deliver(null)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            lm.getCurrentLocation(provider, null, ContextCompat.getMainExecutor(ctx)) { deliver(it) }
+        } else {
+            deliver(lm.getLastKnownLocation(provider))
+        }
+    }
+
+    /** OsmAnd's context-menu button on one of our points. */
+    private fun onOsmAndPointReport(osmandLayerId: String, pointId: String) {
+        val f = syncedPoints[osmandLayerId]?.get(pointId) ?: return
+        val lang = _state.value.language
+        val name = (if (lang == "ar") f.nameAr ?: f.nameEn else f.nameEn ?: f.nameAr).orEmpty()
+        openReport(ReportLocation(f.latitude, f.longitude, ReportLocation.Source.OUR_POINT), name, fromOutside = true)
+        // We are in the background while the user looks at OsmAnd. Android 10+ blocks background activity
+        // starts (seen on Android 17: BAL_BLOCK), so a notification opens the prepared report on tap.
+        ReportNotification.show(getApplication(), name, localizedString(R.string.report_notification_title),
+            localizedString(R.string.report_notification_text))
+    }
+
+    /** Opt-in for the OsmAnd button. The activity asks for the notification permission first. */
+    fun setOsmandReportButton(enabled: Boolean) {
+        settings.osmandReportButton = enabled
+        _state.update { it.copy(osmandReportButton = enabled) }
+        viewModelScope.launch {
+            if (enabled) resyncEnabled() else reportButton.removeAll()
+        }
+    }
+
+    private fun localizedString(id: Int): String {
+        val app = getApplication<Application>()
+        val config = Configuration(app.resources.configuration).apply { setLocale(Locale.forLanguageTag(_state.value.language)) }
+        return app.createConfigurationContext(config).getString(id)
     }
 
     fun dismissNotice() = _state.update { it.copy(notice = null) }

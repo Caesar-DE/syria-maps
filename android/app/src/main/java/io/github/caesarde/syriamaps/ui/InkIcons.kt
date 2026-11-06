@@ -129,6 +129,27 @@ enum class InkGlyph(internal val layers: List<Layer>) {
     Arrow(
         listOf(line("M4.5 12h15M13.5 6l6 6-6 6", width = 2.2f)),
     ),
+    Pencil(
+        listOf(
+            fill("M15.6 4.2l4.2 4.2L9 19.2l-5.3 1.1 1.1-5.3z"),
+            line("M13.4 6.4l4.2 4.2"),
+        ),
+    ),
+    Closed(
+        listOf(
+            fill("M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z"),
+            line("M5.7 5.7l12.6 12.6", width = 2.2f),
+        ),
+    ),
+    Flag(
+        listOf(
+            fill("M5.5 4h11.2l-2.4 4.2 2.4 4.3H5.5z"),
+            line("M5.5 3v18", width = 2f),
+        ),
+    ),
+    Close(
+        listOf(line("M6 6l12 12M18 6L6 18", width = 2.2f)),
+    ),
     Spark(
         listOf(
             fill("M12 2.8l1.9 5.7 5.7 1.9-5.7 1.9L12 18l-1.9-5.7-5.7-1.9 5.7-1.9z"),

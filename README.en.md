@@ -29,8 +29,9 @@ public-service points and sourced road notices — inside OsmAnd, which works of
 | Offline raster packs (`.sqlitedb`) | Planned |
 | 3D buildings | Planned (via OSM data; `.osf` cannot inject 3D geometry) |
 | Real-time traffic | Planned — needs a real provider |
-| Community submissions with moderation | Planned |
-| Android companion app (Kotlin) adding point layers to OsmAnd with one switch | Implemented; tested on a real phone with OsmAnd 5.4.11 (points appear on the map). `.osf` hand-over not yet tested |
+| Reporting wrong names, missing or closed places as OpenStreetMap notes (Android app) | Implemented, tested on a real phone against the OSM test server |
+| Community submissions with moderation on our own server | Planned |
+| Android companion app (Kotlin) adding point layers to OsmAnd with one switch | Implemented; tested on a real phone with OsmAnd 5.4.11 (points appear on the map; `.osf` hand-over works) |
 
 ## How it works
 
@@ -159,7 +160,22 @@ commercial sources.** How to add a layer: [docs/adding-layers.md](docs/adding-la
 
 ## How can people add places?
 
-### Option 1 (recommended): add them in OpenStreetMap
+### Easiest: "Report a problem or add a place" in the app
+
+No account needed: wrong street name, new place (school, pharmacy, ...) or a closed place. The app sends a
+**public OpenStreetMap note** (OSM Notes API) at that location; volunteers check it and fix the map, and the fix
+reaches everyone's OsmAnd maps.
+
+- **Picking the place:** in OsmAnd long-press the place → Share → "Report with Syria Maps", or use the phone's
+  current location.
+- **On Syria Maps points inside OsmAnd:** an optional "Report" button can be turned on in the "Improve the map"
+  card. It needs the notification permission, because Android does not let the app open itself from the background.
+- **Notes are public:** everyone sees location and text, not the sender's name. No personal data, no military or
+  security sites.
+- **For the maintainer:** notes from the app carry `#SyriaMaps`. Review and resolve them on openstreetmap.org
+  (map layer "Map Notes"); there are few active mappers in Syria.
+
+### Option 1 (for mappers): edit OpenStreetMap directly
 
 Every place added in OSM reaches our layer with the next import, and reaches OsmAnd's official maps for all
 users with the next map update.

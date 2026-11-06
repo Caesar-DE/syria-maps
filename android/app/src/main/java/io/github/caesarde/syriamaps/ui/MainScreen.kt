@@ -85,7 +85,7 @@ import io.github.caesarde.syriamaps.data.title
 import io.github.caesarde.syriamaps.osmand.ConnectionState
 
 @Composable
-fun MainScreen(state: UiState, vm: MainViewModel) {
+fun MainScreen(state: UiState, vm: MainViewModel, onReportButton: (Boolean) -> Unit = {}) {
     val c = LocalInk.current
     Box(
         Modifier
@@ -106,6 +106,7 @@ fun MainScreen(state: UiState, vm: MainViewModel) {
             Hero(state, vm::reopenSetup)
             Appear(1) { OsmAndCard(state, vm) }
             Appear(2) { PointLayersCard(state, vm) }
+            Appear(3) { ReportCard(state, vm, onReportButton) }
             // Only wrap cards that have content, otherwise the empty slot still adds list spacing.
             if (state.layers.any { it.alsoRaster || it.integration == Integration.RASTER_OSF }) {
                 Appear(3) { RasterCard(state, vm) }
@@ -328,8 +329,26 @@ private fun OsmAndCard(state: UiState, vm: MainViewModel) {
     }
 }
 
+/** Entry point for reporting wrong names or missing places as OpenStreetMap notes. */
 @Composable
-private fun InkChip(text: String, selected: Boolean, onClick: () -> Unit) {
+private fun ReportCard(state: UiState, vm: MainViewModel, onReportButton: (Boolean) -> Unit) {
+    val c = LocalInk.current
+    InkCard(stringResource(R.string.report_card_title), InkGlyph.Flag) {
+        Text(stringResource(R.string.report_card_text), style = MaterialTheme.typography.bodySmall, color = c.muted)
+        InkButton(stringResource(R.string.report_open), { vm.openReport() }, Modifier.fillMaxWidth(), InkGlyph.Pencil)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.report_osmand_button_title), color = c.text, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.report_osmand_button_text), color = c.muted, style = MaterialTheme.typography.bodySmall)
+            }
+            Spacer(Modifier.width(10.dp))
+            Switch(checked = state.osmandReportButton, onCheckedChange = onReportButton, colors = inkSwitchColors())
+        }
+    }
+}
+
+@Composable
+internal fun InkChip(text: String, selected: Boolean, onClick: () -> Unit) {
     val c = LocalInk.current
     val bg by androidx.compose.animation.animateColorAsState(if (selected) Palette.Yellow else c.paper, tween(250), label = "chip")
     Box(
@@ -522,7 +541,7 @@ private fun PointLayerRow(layer: LayerInfo, enabled: Boolean, sync: LayerSyncSta
 }
 
 @Composable
-private fun ProblemLine(text: String) {
+internal fun ProblemLine(text: String) {
     val c = LocalInk.current
     val shake = remember { Animatable(0f) }
     LaunchedEffect(text) {
@@ -544,7 +563,7 @@ private fun ProblemLine(text: String) {
 
 /** Three ink dots bouncing in sequence. */
 @Composable
-private fun InkSpinner() {
+internal fun InkSpinner() {
     val c = LocalInk.current
     val t = rememberInfiniteTransition(label = "spinner")
     val p by t.animateFloat(0f, 3f, infiniteRepeatable(tween(1100, easing = LinearEasing)), label = "p")

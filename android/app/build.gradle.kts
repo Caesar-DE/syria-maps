@@ -41,7 +41,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Reports from test builds go to the OSM development server, never to the real map.
+            buildConfigField("String", "OSM_API", "\"https://master.apis.dev.openstreetmap.org\"")
+        }
         release {
+            buildConfigField("String", "OSM_API", "\"https://api.openstreetmap.org\"")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
