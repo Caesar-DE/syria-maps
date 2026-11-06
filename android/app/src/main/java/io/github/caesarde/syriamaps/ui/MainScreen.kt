@@ -101,8 +101,13 @@ fun MainScreen(state: UiState, vm: MainViewModel) {
             Hero(state)
             Appear(1) { OsmAndCard(state, vm) }
             Appear(2) { PointLayersCard(state, vm) }
-            Appear(3) { RasterCard(state, vm) }
-            Appear(4) { OtherLayersCard(state) }
+            // Only wrap cards that have content, otherwise the empty slot still adds list spacing.
+            if (state.layers.any { it.alsoRaster || it.integration == Integration.RASTER_OSF }) {
+                Appear(3) { RasterCard(state, vm) }
+            }
+            if (state.layers.any { it.integration == Integration.PLANNED || it.integration == Integration.NOTICES }) {
+                Appear(4) { OtherLayersCard(state) }
+            }
             Appear(5) { ServerCard(state, vm) }
             Spacer(Modifier.height(8.dp))
         }
@@ -223,7 +228,7 @@ private fun StatTile(value: Int, label: String, glyph: InkGlyph, modifier: Modif
     val shown by animateIntAsState(value, tween(900, easing = FastOutSlowInEasing), label = "count")
     Row(
         modifier
-            .inkSurface(c.paper, c.ink, radius = 18.dp, offset = 4.dp)
+            .inkSurface(c.paper, c.ink, shadow = c.shadow, radius = 18.dp, offset = 4.dp)
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -562,7 +567,7 @@ private fun InkProgressIndeterminate() {
 private fun BulletLine(text: String, glyph: InkGlyph, tag: String? = null) {
     val c = LocalInk.current
     Row(verticalAlignment = Alignment.CenterVertically) {
-        InkIcon(glyph, size = 20.dp, ink = c.ink, fill = Palette.Yellow.copy(alpha = if (c.dark) 0.25f else 0.9f))
+        InkIcon(glyph, size = 20.dp, ink = Palette.Ink, fill = Palette.Yellow)
         Spacer(Modifier.width(8.dp))
         Text(text, color = c.text, modifier = Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
         if (tag != null) {

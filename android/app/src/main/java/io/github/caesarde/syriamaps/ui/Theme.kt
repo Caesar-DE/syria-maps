@@ -50,6 +50,7 @@ data class InkColors(
     val ok: Color,
     val bad: Color,
     val scribble: Color,    // background doodle strokes
+    val shadow: Color,      // offset "print" shadow behind cards and buttons
     val dark: Boolean,
 )
 
@@ -64,6 +65,7 @@ private val LightInk = InkColors(
     ok = Palette.Olive,
     bad = Palette.Rust,
     scribble = Palette.Ink.copy(alpha = 0.17f),
+    shadow = Palette.Ink,
     dark = false,
 )
 
@@ -78,6 +80,7 @@ private val DarkInk = InkColors(
     ok = Palette.OliveLight,
     bad = Palette.RustLight,
     scribble = Palette.Yellow.copy(alpha = 0.12f),
+    shadow = Palette.Yellow.copy(alpha = 0.28f),
     dark = true,
 )
 

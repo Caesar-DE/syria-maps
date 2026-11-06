@@ -38,7 +38,11 @@ deleted on the server disappear. Chunks of 250 points keep each transaction well
 - **Permissions.** Current OsmAnd builds create new connected apps as *disabled*. The `map` group
   (layers, points, setMapLocation) is granted by default once the app is enabled. When OsmAnd answers
   `false`, the app shows "allow" (the permission screen) or, on versions without that screen,
-  instructions for *Settings → Connected apps*.
+  instructions to enable the app in OsmAnd's *Menu → Plugins* list.
+  Tested on a Galaxy Z Fold7 (Android 17) with OsmAnd 5.4.11 (`net.osmand`): the first `addMapLayer`
+  is refused (`enabled: false` in OsmAnd's log), and 5.4.11 has no `REQUEST_PERMISSIONS` activity yet
+  (it exists on OsmAnd `master`). In the 5.4 branch, connected apps are listed in *Plugins*
+  (`PluginsListAdapter`) and switched on there.
 - **No overlay selection via AIDL.** Raster overlays (our tile layers) still come from the `.osf`
   `MAP_SOURCES` item, and the user selects them under *Configure map → Overlay map*.
 
@@ -131,5 +135,5 @@ must stay available. No OsmAnd artwork (CC-BY-NC-ND) is used.
 | Compiles against the vendored OsmAnd AIDL interface | Done |
 | Unit tests (JSON parsing, point mapping, chunking) | Done (8 tests) |
 | Signed release APK + AAB, lint without errors | Done |
-| Binding, layer display and permission flow on a real device with OsmAnd | **Not yet verified** |
+| Binding, layer display and permission flow on a real device with OsmAnd | Verified 2026-11-06: Galaxy Z Fold7, Android 17, OsmAnd 5.4.11 (`net.osmand`). Bind OK; first call refused until the app was enabled in *Plugins*; then remove/add/updateMapLayer accepted and 48 synthetic points shown around Damascus |
 | `.osf` hand-over via ACTION_VIEW on a real device | **Not yet verified** |

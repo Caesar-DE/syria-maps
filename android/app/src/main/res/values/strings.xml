@@ -49,10 +49,10 @@
     <string name="problem_osmand_not_installed">OsmAnd غير مثبت.</string>
     <string name="problem_osmand_not_connected">لا يوجد اتصال بـ OsmAnd. افتح OsmAnd مرة واحدة ثم اضغط «مزامنة الآن».</string>
     <string name="problem_osmand_unsupported">نسخة OsmAnd لا تدعم هذه الميزة. حدّث OsmAnd.</string>
-    <string name="problem_permission">رفض OsmAnd الطلب. اسمح لتطبيق «خرائط سوريا» في OsmAnd: الإعدادات ← التطبيقات المتصلة (Connected apps)، أو اضغط زر السماح.</string>
+    <string name="problem_permission">رفض OsmAnd الطلب لأن «خرائط سوريا» غير مفعّل فيه بعد. اضغط زر السماح، أو افتح OsmAnd: القائمة ← الإضافات (Plugins)، ثم فعّل «خرائط سوريا» في القائمة.</string>
     <string name="problem_aidl">فشل الطلب %1$s في OsmAnd.</string>
     <string name="problem_osf_download">تعذر تنزيل الحزمة من الخادم.</string>
-    <string name="problem_permission_screen_missing">نسخة OsmAnd هذه لا تحتوي شاشة طلب الإذن. فعّل «خرائط سوريا» يدوياً في OsmAnd: الإعدادات ← التطبيقات المتصلة.</string>
+    <string name="problem_permission_screen_missing">نسخة OsmAnd هذه لا تحتوي شاشة طلب الإذن. فعّل «خرائط سوريا» يدوياً: افتح OsmAnd ← القائمة ← الإضافات (Plugins)، ثم شغّل «خرائط سوريا» في القائمة وارجع إلى هنا.</string>
     <string name="hero_subtitle">طبقات سورية مباشرة على خريطة OsmAnd</string>
     <string name="hero_points">نقطة على الخريطة</string>
     <string name="hero_layers">طبقة مفعلة</string>

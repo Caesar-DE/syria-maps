@@ -101,7 +101,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             connection.disconnect()
         } else {
             val c = connection.state.value
-            if (c !is ConnectionState.Connected || c.packageName != chosen) connection.connect(chosen)
+            if (c !is ConnectionState.Connected || c.packageName != chosen) {
+                connection.connect(chosen)
+            } else if (_state.value.sync.values.any { it is LayerSyncState.Error && it.problem == Problem.PermissionDenied }) {
+                // Back from OsmAnd after the user may have enabled us there (Plugins list): try again.
+                resyncEnabled()
+            }
         }
     }
 

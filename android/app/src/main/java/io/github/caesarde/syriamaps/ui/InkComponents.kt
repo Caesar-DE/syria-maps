@@ -122,7 +122,7 @@ fun InkCard(
     Column(
         modifier
             .fillMaxWidth()
-            .inkSurface(c.paper, c.ink)
+            .inkSurface(c.paper, c.ink, shadow = c.shadow)
             .animateContentSize(spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow))
             .padding(18.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -179,7 +179,7 @@ fun InkButton(
     val face = if (style == InkButtonStyle.Primary) Palette.Yellow else c.paper
     val label = if (style == InkButtonStyle.Primary) Palette.Ink else c.text
     val border = if (style == InkButtonStyle.Primary) Palette.Ink else c.ink
-    val shadow = if (c.dark) Palette.Yellow.copy(alpha = 0.45f) else Palette.Ink
+    val shadow = c.shadow
     val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val alphaTarget by animateFloatAsState(if (enabled) 1f else 0.45f, tween(250), label = "enabled")
     Box(
@@ -244,7 +244,7 @@ fun StatusPill(text: String, color: Color, pulsing: Boolean) {
     val c = LocalInk.current
     Row(
         Modifier
-            .inkSurface(c.paper, c.ink, radius = 50.dp, offset = 3.dp)
+            .inkSurface(c.paper, c.ink, shadow = c.shadow, radius = 50.dp, offset = 3.dp)
             .padding(horizontal = 14.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

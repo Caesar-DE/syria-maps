@@ -30,7 +30,7 @@ public-service points and sourced road notices — inside OsmAnd, which works of
 | 3D buildings | Planned (via OSM data; `.osf` cannot inject 3D geometry) |
 | Real-time traffic | Planned — needs a real provider |
 | Community submissions with moderation | Planned |
-| Android companion app (Kotlin) adding point layers to OsmAnd with one switch | Implemented, builds (signed APK and AAB) — **not yet tested on a real device** |
+| Android companion app (Kotlin) adding point layers to OsmAnd with one switch | Implemented; tested on a real phone with OsmAnd 5.4.11 (points appear on the map). `.osf` hand-over not yet tested |
 
 ## How it works
 
@@ -204,7 +204,8 @@ Instead of importing the package and picking layers by hand, there is a simple A
 4. Tap "Open in OsmAnd".
 
 Notes:
-- If OsmAnd refuses, an "allow" button appears. Recent OsmAnd versions require allowing connected apps once.
+- If OsmAnd refuses, an "allow" button appears. OsmAnd requires allowing connected apps once. In OsmAnd 5.4
+  there is no permission screen yet: open OsmAnd, *Menu → Plugins*, and switch on "Syria Maps" in the list.
 - OsmAnd keeps these points in memory only; they disappear when OsmAnd is fully closed. Opening
   "Syria Maps" again re-sends them automatically.
 - Raster overlays cannot be switched on from the app. "Install map package" opens OsmAnd's import screen for you to confirm.
