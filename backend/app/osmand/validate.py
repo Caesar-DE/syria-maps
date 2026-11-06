@@ -10,6 +10,7 @@ import io
 import json
 import re
 import zipfile
+from urllib.parse import urlsplit
 from xml.etree import ElementTree
 
 from app.datasets import ValidationReport
@@ -170,7 +171,11 @@ def _check_map_sources(item, where, report) -> None:
             for ph in ("{0}", "{1}", "{2}"):
                 if ph not in url:
                     report.errors.append(f"{at}: url must contain {ph} (zoom/x/y)")
-            if not url.startswith("https://"):
+            if (urlsplit(url.replace("{0}", "0").replace("{1}", "0").replace("{2}", "0")).hostname or "") in (
+                "0.0.0.0", "::"):
+                report.errors.append(f"{at}: tile url {url!r} points at a listen address (0.0.0.0); "
+                                     "phones cannot load tiles from it — use the public server address")
+            elif not url.startswith("https://"):
                 if url.startswith(("http://localhost", "http://127.0.0.1", "http://10.0.2.2")):
                     report.warnings.append(f"{at}: development URL {url!r} — rebuild with an https base URL for release")
                 else:

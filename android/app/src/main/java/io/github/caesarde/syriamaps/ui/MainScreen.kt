@@ -594,7 +594,7 @@ private fun InkProgressIndeterminate() {
 private fun BulletLine(text: String, glyph: InkGlyph, tag: String? = null) {
     val c = LocalInk.current
     Row(verticalAlignment = Alignment.CenterVertically) {
-        InkIcon(glyph, size = 20.dp, ink = Palette.Ink, fill = Palette.Yellow)
+        InkIcon(glyph, size = 20.dp, ink = c.ink, fill = if (c.dark) Palette.Graphite else Palette.Yellow)
         Spacer(Modifier.width(8.dp))
         Text(text, color = c.text, modifier = Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
         if (tag != null) {

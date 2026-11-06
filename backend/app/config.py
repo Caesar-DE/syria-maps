@@ -1,6 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
+from urllib.parse import urlsplit
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -37,6 +38,21 @@ class Settings(BaseSettings):
     @property
     def base_url(self) -> str:
         return self.public_base_url.rstrip("/")
+
+
+#: Bind-all addresses: valid for a server to listen on, but no phone can connect to them.
+UNREACHABLE_HOSTS = {"0.0.0.0", "::", ""}
+
+
+def base_url_problem(url: str) -> str | None:
+    """Why ``url`` cannot work as the public address written into tile templates, or None."""
+    parts = urlsplit(url)
+    if parts.scheme not in ("http", "https"):
+        return f"SYRIA_MAPS_PUBLIC_BASE_URL {url!r} must start with https:// (or http://)"
+    if (parts.hostname or "") in UNREACHABLE_HOSTS:
+        return (f"SYRIA_MAPS_PUBLIC_BASE_URL {url!r} is a listen address, not a public one. "
+                "Set it to the address phones use, e.g. https://maps.your-domain")
+    return None
 
 
 @lru_cache

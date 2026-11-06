@@ -28,6 +28,8 @@ class LayerLinks(BaseModel):
     features: str | None = None
     tiles: str | None = None
     osmand_tile_template: str | None = None
+    #: Pixel size of the tiles behind ``osmand_tile_template`` (OsmAnd source "tileSize").
+    osmand_tile_size: int | None = None
     downloads: dict[str, str] = {}
 
 

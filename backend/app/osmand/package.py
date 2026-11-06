@@ -29,9 +29,19 @@ class PackageOptions:
     include_gpx: bool = True
 
 
-def tile_url_template(base_url: str, layer: Layer) -> str:
-    # OsmAnd template placeholders: {0} = zoom, {1} = x, {2} = y.
-    return f"{base_url.rstrip('/')}/tiles/{layer.id}/{{0}}/{{1}}/{{2}}.png"
+#: Pixel size of the tiles OsmAnd is pointed at. 512 px ("@2x") stays sharp on 2-3x dense phone screens;
+#: 256 px tiles are stretched there and look blurry.
+OSMAND_TILE_SIZE = 512
+
+
+def tile_url_template(base_url: str, layer: Layer, tile_size: int = OSMAND_TILE_SIZE) -> str:
+    """OsmAnd template placeholders: {0} = zoom, {1} = x, {2} = y.
+
+    The URL must match the source's declared tile size: OsmAnd draws the region (0, 0, tileSize,
+    tileSize) of each bitmap (MapTileLayer), so a 512 px image in a 256 px source shows only a quarter.
+    """
+    suffix = "@2x" if tile_size == 512 else ""
+    return f"{base_url.rstrip('/')}/tiles/{layer.id}/{{0}}/{{1}}/{{2}}{suffix}.png"
 
 
 def map_source_name(layer: Layer) -> str:
@@ -56,7 +66,7 @@ def map_source_entry(base_url: str, layer: Layer) -> dict[str, Any]:
         "expire": 60,
         "inversiveZoom": False,
         "ext": ".png",
-        "tileSize": 256,
+        "tileSize": OSMAND_TILE_SIZE,
         "bitDensity": 32,
         "avgSize": 4000,
         "rule": "",

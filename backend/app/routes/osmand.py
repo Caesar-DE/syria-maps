@@ -5,7 +5,7 @@ from urllib.parse import urlencode
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 
 from app.cache import TTLCache
-from app.config import Settings
+from app.config import Settings, base_url_problem
 from app.layers import LayerRegistry
 from app.osmand.package import PackageOptions, build_osf, map_source_name, tile_url_template
 from app.routes.deps import export_cache, get_registry, get_settings, get_storage, require_layer
@@ -22,6 +22,9 @@ def osf_package(
     settings: Settings = Depends(get_settings),
     cache: TTLCache = Depends(export_cache),
 ):
+    # A package with an unreachable tile URL imports fine but shows no (or only stale, blurry) tiles.
+    if problem := base_url_problem(settings.base_url):
+        raise HTTPException(503, problem)
     versions = tuple((v.layer_id, v.checksum) for v in storage.list_versions())
     data = cache.get_or_set(
         ("osf", settings.base_url, versions),
@@ -38,11 +41,14 @@ def add_tile_source_link(request: Request, layer_id: str, settings: Settings = D
     layer = require_layer(request, layer_id)
     if not layer.tiles or layer.status == "planned":
         raise HTTPException(404, f"layer {layer.id!r} has no tiles")
+    if problem := base_url_problem(settings.base_url):
+        raise HTTPException(503, problem)
     query = urlencode({
         "name": map_source_name(layer),
         "min_zoom": layer.zoom.min,
         "max_zoom": layer.zoom.max,
-        "url_template": tile_url_template(settings.base_url, layer),
+        # The documented link parameters have no tile size, so OsmAnd assumes 256 px: use the 1x tiles.
+        "url_template": tile_url_template(settings.base_url, layer, tile_size=256),
     })
     return {"layer_id": layer.id, "url": f"https://osmand.net/add-tile-source?{query}",
             "verified_on_device": False}

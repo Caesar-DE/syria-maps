@@ -58,7 +58,9 @@ def test_package_contents(osf):
                                             "Syria Maps - Public services (synthetic)"]
     source = sources[1]
     assert set(source) == set(MAP_SOURCE_KEYS)
-    assert source["url"] == f"{BASE}/tiles/public-services/{{0}}/{{1}}/{{2}}.png"
+    # High-density tiles: the URL and the declared size must match (OsmAnd crops to tileSize).
+    assert source["url"] == f"{BASE}/tiles/public-services/{{0}}/{{1}}/{{2}}@2x.png"
+    assert source["tileSize"] == 512
     assert source["timesupported"] is True and source["expire"] == 60
     assert root["items"][3]["subtype"] in FILE_SUBTYPES
 
@@ -85,7 +87,31 @@ def test_add_tile_source_link(client):
     body = client.get("/osmand/add-tile-source/public-services").json()
     assert body["url"].startswith("https://osmand.net/add-tile-source?name=Syria+Maps")
     assert "url_template=https%3A%2F%2Fmaps.example.org%2Ftiles%2Fpublic-services%2F%7B0%7D" in body["url"]
+    assert "%402x" not in body["url"]  # the link has no tile-size parameter, so it must use 256 px tiles
     assert body["verified_on_device"] is False
+
+
+@pytest.mark.parametrize("bad", ["http://0.0.0.0:8000", "http://[::]:8000", "0.0.0.0:8000"])
+def test_unreachable_base_url_is_refused(storage, registry, bad):
+    from fastapi.testclient import TestClient
+
+    from app.config import Settings, base_url_problem
+    from app.main import create_app
+
+    assert base_url_problem(bad)
+    settings = Settings(storage="memory", public_base_url=bad)
+    with TestClient(create_app(settings=settings, storage=storage, registry=registry)) as c:
+        r = c.get("/osmand/syria-maps.osf")
+        assert r.status_code == 503
+        assert "SYRIA_MAPS_PUBLIC_BASE_URL" in r.json()["detail"]
+        assert c.get("/osmand/add-tile-source/public-services").status_code == 503
+
+
+@pytest.mark.parametrize("good", ["https://maps.example.org", "http://localhost:8000", "http://192.168.1.20:8000"])
+def test_reachable_base_urls_are_accepted(good):
+    from app.config import base_url_problem
+
+    assert base_url_problem(good) is None
 
 
 # -- validator catches broken packages ----------------------------------------
@@ -105,6 +131,7 @@ def _mutated(osf: bytes, fn) -> bytes:
     (lambda r: r["items"][0].update(icon={"": "@missing.png"}), "missing.png"),
     (lambda r: r["items"][2]["items"][0].update(url="https://x/{0}/{1}.png"), "{2}"),
     (lambda r: r["items"][2]["items"][0].update(url="http://x.org/{0}/{1}/{2}.png"), "https"),
+    (lambda r: r["items"][2]["items"][0].update(url="http://0.0.0.0:8000/t/{0}/{1}/{2}.png"), "listen address"),
     (lambda r: r["items"][2]["items"][0].update(minZoom="10"), "'minZoom' must be int"),
     (lambda r: r["items"][2]["items"][0].update(timesupported=1), "'timesupported' must be bool"),
     (lambda r: r["items"][2]["items"][0].update(name="Syria/Maps"), "becomes a folder"),

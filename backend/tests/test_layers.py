@@ -17,7 +17,8 @@ def test_list_layers(client):
     assert ps["feature_count"] == 48
     assert ps["latest_version"] == 1
     assert ps["license"] and ps["attribution"]
-    assert ps["links"]["osmand_tile_template"] == f"{BASE}/tiles/public-services/{{0}}/{{1}}/{{2}}.png"
+    assert ps["links"]["osmand_tile_template"] == f"{BASE}/tiles/public-services/{{0}}/{{1}}/{{2}}@2x.png"
+    assert ps["links"]["osmand_tile_size"] == 512
     assert ps["data_availability"]["online_tiles"] == "available"
     assert ps["data_availability"]["offline_raster"] == "planned"
 

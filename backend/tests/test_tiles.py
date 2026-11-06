@@ -13,11 +13,11 @@ def tile_xy(lon: float, lat: float, z: int) -> tuple[int, int]:
     return x, y
 
 
-def _png(r) -> Image.Image:
+def _png(r, size: int = 256) -> Image.Image:
     assert r.status_code == 200
     assert r.headers["content-type"] == "image/png"
     img = Image.open(io.BytesIO(r.content))
-    assert img.size == (256, 256)
+    assert img.size == (size, size)
     return img.convert("RGBA")
 
 
@@ -47,3 +47,21 @@ def test_tile_errors(client):
     assert client.get("/tiles/nope/1/0/0.png").status_code == 404
     assert client.get("/tiles/buildings-3d/1/0/0.png").status_code == 404  # planned
     assert client.get("/tiles/safety-notices/1/0/0.png").status_code == 404  # no tiles
+
+
+def test_2x_tile_is_512px_and_matches_1x_layout(client, fixture_data):
+    lon, lat = fixture_data["features"][0]["geometry"]["coordinates"]
+    x, y = tile_xy(lon, lat, 14)
+    one = _png(client.get(f"/tiles/public-services/14/{x}/{y}.png"))
+    two = _png(client.get(f"/tiles/public-services/14/{x}/{y}@2x.png"), size=512)
+    b1, b2 = one.getchannel("A").getbbox(), two.getchannel("A").getbbox()
+    assert b1 is not None and b2 is not None
+    # Same markers at twice the pixel density: bounding boxes scale by 2 (within antialiasing slack).
+    assert all(abs(2 * a - b) <= 3 for a, b in zip(b1, b2))
+
+
+def test_2x_tile_errors_and_empty(client):
+    assert client.get("/tiles/public-services/3/8/0@2x.png").status_code == 404
+    assert client.get("/tiles/nope/1/0/0@2x.png").status_code == 404
+    x, y = tile_xy(-40.0, 10.0, 12)
+    assert _png(client.get(f"/tiles/public-services/12/{x}/{y}@2x.png"), size=512).getchannel("A").getbbox() is None

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query, Request
 
 from app.config import Settings
 from app.layers import Category, Layer, LayerRegistry, Status
-from app.osmand.package import tile_url_template
+from app.osmand.package import OSMAND_TILE_SIZE, tile_url_template
 from app.routes.deps import get_registry, get_settings, get_storage, require_layer
 from app.schemas import LayerLinks, LayerList, LayerOut
 from app.storage.base import Storage
@@ -32,6 +32,7 @@ def layer_out(layer: Layer, storage: Storage, settings: Settings, counts: dict[s
         features=f"{base}/api/v1/layers/{layer.id}/features" if has_data and not layer.verified_only else None,
         tiles=f"{base}/tiles/{layer.id}/{{z}}/{{x}}/{{y}}.png" if layer.tiles else None,
         osmand_tile_template=tile_url_template(base, layer) if layer.tiles else None,
+        osmand_tile_size=OSMAND_TILE_SIZE if layer.tiles else None,
         downloads=downloads,
     )
     return LayerOut(

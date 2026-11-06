@@ -91,6 +91,13 @@ https://your-host/tiles/public-services/12/2459/1643.png
 - No image: check that the server runs (`/health`) and HTTPS is set up (Caddy or nginx, see [docs/deployment.md](docs/deployment.md)).
 - Image works but not in OsmAnd: check that Online maps is enabled and the overlay selected, and that
   `SYRIA_MAPS_PUBLIC_BASE_URL` in the server's `.env` is the correct HTTPS URL; then download the `.osf` again.
+- Large, pixelated colour blobs when zooming in: OsmAnd cannot load tiles for the current zoom and stretches
+  older tiles from a lower zoom. Usually `SYRIA_MAPS_PUBLIC_BASE_URL` is wrong, e.g. `http://0.0.0.0:8000`
+  (a listen address no phone can reach; the server now refuses to build a package with it). Fix it, download
+  and import the `.osf` again, then close and reopen OsmAnd.
+
+The package uses 512 px tiles (`.../{z}/{x}/{y}@2x.png`, `tileSize: 512`) so markers stay sharp on dense
+phone screens; the 256 px tiles (`.../{z}/{x}/{y}.png`) remain available.
 
 ### Without `.osf`
 
